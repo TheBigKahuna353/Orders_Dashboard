@@ -1,0 +1,31 @@
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex-direction: column;
+}
+.container-flex {
+    display: flex; /* Makes the child divs (columns) align in a row */
+    gap: 20px;     /* Adds space between the columns */
+    width: 90vw;  /* Ensures the container takes full width */
+}
+
+.column-left {
+    flex: 1; /* Both columns take equal available space */
+    padding: 20px;
+    background-color: coral;
+}
+
+.column-right {
+    flex: 2; /* Both columns take equal available space */
+    padding: 20px;
+    background-color: coral;
+}
+
+/* Optional: Add a media query to stack columns on smaller screens */
+@media (max-width: 600px) {
+    .container-flex {
+        flex-direction: column;
+    }
+}
