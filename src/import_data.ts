@@ -18,7 +18,7 @@ export function parseCsvFile(file: File): Promise<any[]> {
   })
 }
 
-export async function onUpload(
+export async function onCSVUpload(
   file: File,
   setOrders: React.Dispatch<React.SetStateAction<Order[]>>,
   setLocations: React.Dispatch<React.SetStateAction<{[key: string]: number}>>,

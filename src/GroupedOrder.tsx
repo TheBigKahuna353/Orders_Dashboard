@@ -8,7 +8,7 @@ interface GroupedOrderProps {
 
 function GroupedOrder(props: GroupedOrderProps) {
     const style: React.CSSProperties = {
-        border: '1px solid ' + (props.group.status === 'finished' ? '#00FF00' : '#ff0000ff'),
+        border: '5px solid ' + (props.group.status === 'finished' ? '#00FF00' : '#ff0000ff'),
         borderRadius: '5px',
         flex: '1 1 0px',
     };

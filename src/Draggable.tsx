@@ -1,5 +1,6 @@
 import React from 'react';
 import {useDraggable} from '@dnd-kit/core';
+import useSystemTheme from './useSystemTheme.ts';
 
 interface DraggableProps {
   children?: React.ReactNode;
@@ -10,11 +11,14 @@ function Draggable(props: DraggableProps) {
   const {attributes, listeners, setNodeRef, transform} = useDraggable({
     id: props.id,
   });
+
+  const isDarkMode = useSystemTheme();
+
   const style : React.CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     padding: '0px',
     display: 'flex',
-    backgroundColor: 'black',
+    backgroundColor: isDarkMode ? 'black' : 'white',
     justifyContent: 'center',
     flex: '1 1 0px',
     minWidth: '20vw',
