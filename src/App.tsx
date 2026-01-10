@@ -6,7 +6,7 @@ import Forecast from './Forecast/Forecast';
 function App() {
 
   return (
-    <HashRouter>
+    <HashRouter basename='/'>
       <Routes>
         <Route path="/forecast" element={<Forecast />} />
         <Route path="/" element={<Dashboard />} />
