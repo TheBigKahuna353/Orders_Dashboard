@@ -2,7 +2,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {DndContext, pointerWithin} from '@dnd-kit/core';
 
-import {Droppable} from '../Droppable.tsx';
+import {Droppable} from './Droppable.tsx';
 
 import { FileUpload } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
@@ -12,10 +12,10 @@ import { PrimeReactProvider } from 'primereact/api';
 import 'primereact/resources/themes/bootstrap4-dark-blue/theme.css';
 
 import '../App.css'
-import { onCSVUpload } from '../import_data.ts';
-import { GroupedOrder } from '../GroupedOrder.tsx';
+import { onCSVUpload } from './import_data.ts';
+import { GroupedOrder } from './GroupedOrder.tsx';
 
-import { filterOrder } from '../filter.ts';
+import { filterOrder } from './filter.ts';
 
 function Dashboard() {
 
@@ -38,6 +38,7 @@ function Dashboard() {
     const groups = new Map<string, GroupedOrder>()
 
     for (const order of orders) {
+      // create group if it doesn't exist
       if (!groups.has(order.groupId)) {
         groups.set(order.groupId, {
           groupId: order.groupId,
@@ -48,8 +49,10 @@ function Dashboard() {
           totalWeight: 0,
           totalVolume: 0,
           status: "finished",
+          palletsVarience: 0,
         })
       }
+      // add order to group
 
       function round(num: number, fractionDigits: number): number {
           return Number(num.toFixed(fractionDigits));
@@ -62,15 +65,27 @@ function Dashboard() {
       group.totalWeight = round(group.totalWeight + order.weight, 2)
       group.totalVolume = round(group.totalVolume + order.volume, 2)
 
+      // Some orders are small enough to be added to existing pallets
+      // but they still say 1 pallet. To reflect this, we calculate the varience
+      // which is the range the pallets could be in.
+      // this is calculated as num of orders that have 1 pallet - 1 if all orders have 1 pallet
+      if (group.orders.length > 1) {
+          group.palletsVarience! = 0;
+        for (const o of group.orders) {
+          if (o.pallets === 1 && o.status !== "finished") {
+            group.palletsVarience! += 1;
+          }
+        }
+      }
+
       if (order.status !== "finished") {
         group.status = "picking"
       }
     }
-    console.log("Grouped Orders:", Array.from(groups.values()));
-    console.log("Locations:", locations);
+    // console.log("Grouped Orders:", Array.from(groups.values()));
+    // console.log("Locations:", locations);
     
     return Array.from(groups.values())
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders])
 
     const toast = useRef<Toast>(null);
@@ -79,13 +94,16 @@ function Dashboard() {
       width: '80vw',
       margin: '20px auto',
       position: 'absolute',
-      top: '20px',
+      top: '70px',
       left: '20px',
     }
 
-    const getTotalPallets = (location: number) => {
+    const getTotalPallets = (location: number, ready: boolean = true) => {
       return groupedOrders.reduce((total, group) => {
         if (locations[group.groupId] === location && filterOrder(group, filter)) {
+          if (!ready) {
+            return total + group.totalPallets;
+          }
           return group.status === "finished" ? total + group.totalPallets : total;
         }
         return total;
@@ -108,20 +126,20 @@ function Dashboard() {
         collisionDetection={pointerWithin}>
         <Toast ref={toast} />
         <FileUpload 
-        style={style} 
-        mode="basic" 
-        name="demo[]" 
-        accept=".csv" 
-        maxFileSize={1000000} 
-        auto 
-        chooseLabel="Import CSV"
-        customUpload
-        uploadHandler={(e) => import_data(e.files[0])}/>
+          style={style} 
+          mode="basic" 
+          name="demo[]" 
+          accept=".csv" 
+          maxFileSize={1000000} 
+          auto 
+          chooseLabel="Import CSV"
+          customUpload
+          uploadHandler={(e) => import_data(e.files[0])}/>
         <div className="container-flex">
             <div className="column-left">
               <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                   <h2>Unnassigned Orders</h2>
-                  <p>{getTotalPallets(0)} Pallets to assign</p>
+                  <p>{getTotalPallets(0, false)} Pallets to assign</p>
                 </div>
                 <Droppable id="0">
                     {groupedOrders.map((group) => (

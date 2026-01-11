@@ -19,4 +19,5 @@ type GroupedOrder = {
   totalWeight: number
   totalVolume: number
   status: "picking" | "finished",
+  palletsVarience?: number
 }

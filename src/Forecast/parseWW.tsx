@@ -47,9 +47,11 @@ export default function parseCliboard (e:any, options:any = {}) {
       currentInput = currentCell.nextElementSibling.querySelector(inputSelector)
       if (!currentInput) break
     }
+    if (data.length === 1) break
 
     // Row overflow
     currentRow = currentRow.nextElementSibling
+    console.log(currentRow)
     if (!currentRow) break
 
     // Non-table cell element

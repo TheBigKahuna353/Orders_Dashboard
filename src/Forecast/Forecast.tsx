@@ -8,7 +8,11 @@ import './Forecast.css';
 
 function Forecast() {
 
+    const [numRows, setNumRows] = React.useState(1);
+
+
     const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+        setNumRows(prev => prev + 1);
         return parseCliboard(event);
     }
 
@@ -24,6 +28,7 @@ function Forecast() {
         <div>
             <ThemeProvider theme={theme}>
             <h1>Forecast Page</h1>
+            <h2>Woolworths Data</h2>
             <TableContainer onPaste={handlePaste}>
                 <Table aria-label="simple table">
                     <TableHead>
@@ -36,13 +41,15 @@ function Forecast() {
                         </TableRow>
                     </TableHead>
                     <tbody>
-                        <TableRow>
-                            <TableCell><input/></TableCell>
-                            <TableCell><input/></TableCell>
-                            <TableCell><input/></TableCell>
-                            <TableCell><input/></TableCell>
-                            <TableCell><input/></TableCell>
+                    {Array.from({ length: numRows }).map((_, index) => (
+                        <TableRow key={index}>
+                            <TableCell><input /></TableCell>
+                            <TableCell><input /></TableCell>
+                            <TableCell><input /></TableCell>
+                            <TableCell><input /></TableCell>
+                            <TableCell><input /></TableCell>
                         </TableRow>
+                    ))}
                     </tbody>
                 </Table>
             </TableContainer>
@@ -51,4 +58,4 @@ function Forecast() {
     );
 }
 
-export default Forecast
+export default Forecast;

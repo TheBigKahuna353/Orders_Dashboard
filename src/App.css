@@ -1,10 +1,11 @@
 #root {
   display: flex;
-  justify-content: center;
   align-items: center;
   width: 100%;
   flex-direction: column;
+  min-height: 100vh;
 }
+
 .container-flex {
     display: flex; /* Makes the child divs (columns) align in a row */
     gap: 20px;     /* Adds space between the columns */

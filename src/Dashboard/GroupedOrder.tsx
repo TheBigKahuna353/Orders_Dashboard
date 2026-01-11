@@ -52,6 +52,7 @@ function GroupedOrder(props: GroupedOrderProps) {
                 <div style={style2}>
                     <h3 style={startItem}>{props.group.customer}</h3>
                     <p style={middleItems}>Pallets: {props.group.totalPallets}</p>
+                    <p style={middleItems}>Pallets Variance: {props.group.palletsVarience}</p>
                     {props.detailed && (
                         <p style={middleItems}>{props.group.totalWeight} Kg</p>
                     )}

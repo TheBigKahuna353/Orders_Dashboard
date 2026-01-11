@@ -13,7 +13,7 @@ export function filterOrder(order: GroupedOrder, filter: string): boolean {
         return ['hornby', 'rolleston', 'christchurch'].includes(order.city.toLowerCase());
     } else if (filter === 'Locals small') {
         return ['hornby', 'rolleston', 'christchurch'].includes(order.city.toLowerCase()) && 
-            ['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs Dunedin"].includes(order.customer);
+           !['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs Dunedin"].includes(order.customer);
     } else if (filter === 'Bulk') {
         return ['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs Dunedin"].includes(order.customer);
     }
