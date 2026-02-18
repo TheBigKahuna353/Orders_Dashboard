@@ -1,4 +1,4 @@
-import {Draggable} from './Draggable.tsx';
+import {Draggable} from '../Dashboard/Draggable.tsx';
 import React from 'react';
 
 interface OrderProps {

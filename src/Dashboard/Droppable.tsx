@@ -4,6 +4,7 @@ import {useDroppable} from '@dnd-kit/core';
 interface DroppableProps {
   children?: React.ReactNode;
   id: string;
+  style?: React.CSSProperties;
 }
 
 function Droppable(props: DroppableProps) {
@@ -11,14 +12,12 @@ function Droppable(props: DroppableProps) {
     id: 'droppable-' + props.id,
   });
   const style: React.CSSProperties = {
-    minHeight: '100px',
-    border: '2px dashed',
-    borderColor: 'black',
     backgroundColor: isOver ? 'lightgray' : undefined,
-    padding: '10px',
-    boxSizing: 'border-box',
-    display: 'grid',
-    gap: '10px',
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 0, 
+    height: "100%",
+    ...props.style
   };
   
   

@@ -1,37 +1,41 @@
 import React from 'react';
 import {useDraggable} from '@dnd-kit/core';
-import useSystemTheme from '../useSystemTheme.ts';
+
+import { MdDragIndicator } from "react-icons/md"; 
 
 interface DraggableProps {
   children?: React.ReactNode;
   id: string;
+  setIsDragging?: (dragging: boolean) => void;
 }
 
 function Draggable(props: DraggableProps) {
-  const {attributes, listeners, setNodeRef, transform} = useDraggable({
+  const {attributes, listeners, setNodeRef, isDragging} = useDraggable({
     id: props.id,
   });
 
-  const isDarkMode = useSystemTheme();
 
   const style : React.CSSProperties = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    padding: '0px',
-    display: 'flex',
-    backgroundColor: isDarkMode ? 'black' : 'white',
-    justifyContent: 'center',
-    flex: '1 1 0px',
-    minWidth: '20vw',
-    position: 'relative',
+    opacity: isDragging ? 0.5 : 1,
   };
 
-
+  const style2 : React.CSSProperties = {
+     cursor: isDragging ? 'grabbing' : 'grab', 
+     width: '10px', 
+     padding: '0'
+  }
   
+  if (props.setIsDragging) {
+    props.setIsDragging(isDragging);
+  }
+
   return (
-    <div ref={setNodeRef} style={style}>
-      <div style={{width: '30%', height: '100%', position: 'absolute', left: 0, cursor: 'grab',}} {...listeners}  {...attributes}/>
+    <tr ref={setNodeRef} style={style} data-dnd-id={props.id}>
+      <td style={style2} {...listeners}  {...attributes}>
+        <MdDragIndicator />
+      </td>
       {props.children}
-    </div>
+    </tr>
   );
 }
 

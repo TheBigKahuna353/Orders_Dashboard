@@ -1,4 +1,4 @@
-import {Draggable} from './Draggable.tsx';
+import {Draggable} from '../Dashboard/Draggable.tsx';
 import React from 'react';
 
 interface GroupedOrderProps {
@@ -8,8 +8,6 @@ interface GroupedOrderProps {
 
 function GroupedOrder(props: GroupedOrderProps) {
     const style: React.CSSProperties = {
-        border: '5px solid ' + (props.group.status === 'finished' ? '#00FF00' : '#ff0000ff'),
-        borderRadius: '5px',
         flex: '1 1 0px',
     };
 
@@ -20,13 +18,14 @@ function GroupedOrder(props: GroupedOrderProps) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-    };
+    }; 
 
     const expandStyle: React.CSSProperties = {
         cursor: 'pointer',
         height: '100%',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
+        paddingRight: '15px',
     };
 
     const startItem: React.CSSProperties = {
@@ -38,6 +37,7 @@ function GroupedOrder(props: GroupedOrderProps) {
         justifySelf: 'center',
         marginLeft: 'auto',
         marginRight: 'auto',
+        backgroundColor: "green"
     };
 
     const onClickExpand = () => {
@@ -51,15 +51,15 @@ function GroupedOrder(props: GroupedOrderProps) {
             <div style={style}>
                 <div style={style2}>
                     <h3 style={startItem}>{props.group.customer}</h3>
-                    <p style={middleItems}>Pallets: {props.group.totalPallets}</p>
-                    <p style={middleItems}>Pallets Variance: {props.group.palletsVarience}</p>
+                    <p style={middleItems}>{props.group.totalPallets}</p>
+                    <p style={middleItems}>{props.group.palletsVarience}</p>
                     {props.detailed && (
                         <p style={middleItems}>{props.group.totalWeight} Kg</p>
                     )}
                     {props.detailed && (
                         <p style={middleItems}>{props.group.totalVolume} m<sup>3</sup></p>
                     )}
-                    <div style={expandStyle} onClick={onClickExpand}><p>Num Orders: {props.group.orders.length}</p></div>
+                    <div style={expandStyle} onClick={onClickExpand}><p> {props.group.orders.length}</p></div>
                 </div>
                 {isExpanded && (
                     <div style={{padding: '5px', display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', boxSizing: 'border-box'}}>

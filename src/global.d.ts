@@ -2,12 +2,13 @@ type Order = {
   deliveryNo: string
   customer: string
   city: string
-  u: string
+  u: string // comments column
   weight: number
   volume: number
   pallets: number
   status: "picking" | "finished"
   groupId: string
+  deliverDate: string,
 }
 
 type GroupedOrder = {
@@ -20,4 +21,25 @@ type GroupedOrder = {
   totalVolume: number
   status: "picking" | "finished",
   palletsVarience?: number
+  deliverDate: string,
 }
+
+type SalesOrder = {
+  orderNo: string
+  customer: string,
+  city: string,
+  deliverDate: string,
+  cartons: number,
+  pallets: number,
+  volume: number
+}
+
+type WidgetLayout = {
+  id: string;
+  col: number;
+  row: number;
+  colSpan: number;
+  rowSpan: number;
+};
+
+type Filter = 'All' | 'All Out of Town' | 'Out of town small' | 'All Locals' | 'Locals small' | 'Bulk';

@@ -1,59 +1,43 @@
 import React from "react";
-import parseCliboard from "./parseWW";
-import { createTheme, Table, TableCell, TableContainer, TableHead, TableRow, ThemeProvider } from "@mui/material";
 
-import useSystemTheme from "../useSystemTheme";
+import { FileUpload } from 'primereact/fileupload';
+
+import { onTXTFileUpload } from "./import_data";
 
 import './Forecast.css';
 
 function Forecast() {
 
-    const [numRows, setNumRows] = React.useState(1);
+    const style: React.CSSProperties = {
+          width: '80vw',
+          margin: '20px auto',
+          position: 'absolute',
+          top: '70px',
+          left: '20px',
+        };
 
+    const fileRef = React.useRef<FileUpload>(null);
 
-    const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
-        setNumRows(prev => prev + 1);
-        return parseCliboard(event);
-    }
-
-    const isDarkMode = useSystemTheme();
-
-    const theme = createTheme({
-        palette: {
-            mode: isDarkMode ? 'dark' : 'light',
-        },
-    });
+    const import_data = async (file: File) => {
+        const data = await onTXTFileUpload(file);
+        console.log("Parsed Data:", data);
+        fileRef.current?.clear();
+    };
 
     return (
         <div>
-            <ThemeProvider theme={theme}>
-            <h1>Forecast Page</h1>
-            <h2>Woolworths Data</h2>
-            <TableContainer onPaste={handlePaste}>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>PO Number</TableCell>
-                            <TableCell>Delivery Date </TableCell>
-                            <TableCell>Delivery Time </TableCell>
-                            <TableCell>Booking Quantity</TableCell>
-                            <TableCell>Comments</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <tbody>
-                    {Array.from({ length: numRows }).map((_, index) => (
-                        <TableRow key={index}>
-                            <TableCell><input /></TableCell>
-                            <TableCell><input /></TableCell>
-                            <TableCell><input /></TableCell>
-                            <TableCell><input /></TableCell>
-                            <TableCell><input /></TableCell>
-                        </TableRow>
-                    ))}
-                    </tbody>
-                </Table>
-            </TableContainer>
-            </ThemeProvider>
+            <h1>Forecast</h1>
+            <FileUpload 
+                ref={fileRef}
+                style={style} 
+                mode="basic" 
+                name="demo[]" 
+                accept=".txt" 
+                maxFileSize={1000000} 
+                auto 
+                chooseLabel="Import CSV"
+                customUpload
+                uploadHandler={(e) => import_data(e.files[0])}/>
         </div>
     );
 }
