@@ -115,3 +115,107 @@
 .variance.neutral {
   color: #888888;
 }
+
+
+/* table row background */
+.expand-detail-row {
+
+  background-color: var(--bg-panel);
+
+}
+
+
+/* animated container */
+.expand-wrapper {
+
+  overflow: hidden;
+
+  animation: expandOpen 0.22s ease-out;
+
+}
+
+
+/* inner content */
+.expand-content {
+
+  display: flex;
+
+  gap: 24px;
+
+  padding: 10px 16px;
+
+  font-size: 13px;
+
+  opacity: 0.9;
+
+}
+
+
+/* animation keyframes */
+@keyframes expandOpen {
+
+  from {
+
+    max-height: 0;
+
+    opacity: 0;
+
+    transform: translateY(-6px);
+
+  }
+
+  to {
+
+    max-height: 100px;
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+  }
+
+}
+
+.expand-detail-content {
+
+  display: flex;
+
+  gap: 24px;
+
+  padding: 8px 16px;
+
+  font-size: 13px;
+
+  opacity: 0.85;
+
+}
+
+.expand-wrapper.closing {
+
+  animation: expandClose 0.2s ease-in forwards;
+
+}
+
+@keyframes expandClose {
+
+  from {
+
+    max-height: 100px;
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+  }
+
+  to {
+
+    max-height: 0;
+
+    opacity: 0;
+
+    transform: translateY(-6px);
+
+  }
+
+}

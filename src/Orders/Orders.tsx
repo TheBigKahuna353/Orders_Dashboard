@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import Header from "../Bars/Header";
 import {onCSVUpload} from "../Data/import_ecargo";
 import OrdersTable from '../OrdersTable/OrdersTable';
@@ -14,15 +12,12 @@ export default function Orders() {
         await onCSVUpload(file);
     }
 
-    
-    const [filter, setFilter] = useState<Filter>('All');
-
     return (
         <div className="orders-page">
             <div className="main-content">
-                <Header onImportClick={import_data} currentFilter={filter} setFilter={setFilter}/>
+                <Header onImportClick={import_data} showFilters={true}/>
                 <div className="content">
-                    <OrdersTable filter={filter} fullScreen={true} />
+                    <OrdersTable fullScreen={true} />
                 </div>
             </div>
         </div>

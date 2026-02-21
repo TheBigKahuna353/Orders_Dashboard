@@ -90,7 +90,7 @@ function Dashboard() {
         </DragOverlay>
         <div className="dashboard">
           <main className="main-content">
-            <Header onImportClick={import_data} />
+            <Header onImportClick={import_data} showFilters/>
             <div className="dash-content">
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
                 switch (layout.id) {

@@ -6,7 +6,7 @@ export function useDailySummary() {
     const { groupedOrders } = useOrdersStore()
 
     const map = new Map<string, DailySummary>()
-
+    let parentOrders = 0
 
     for (const group of groupedOrders) {
 
@@ -38,9 +38,13 @@ export function useDailySummary() {
         entry.dispatch.pallets += group.totalPallets
         entry.dispatch.weight += group.totalWeight
         entry.dispatch.cube += group.totalVolume
+        parentOrders += 1
     }
 
-    return Array.from(map.values())
-        .sort((a, b) => a.date.getTime() - b.date.getTime())
+    return {
+        data: Array.from(map.values())
+            .sort((a, b) => a.date.getTime() - b.date.getTime()),
+        parentOrders
+    }
 
 }

@@ -17,7 +17,7 @@ export default function Summary() {
         onCSVUpload(file);
     };
 
-    const data = useDailySummary();
+    const {data, parentOrders} = useDailySummary();
     const setDateRange = useUIStore(s => s.setDateRange)
     const setDateMode = useUIStore(s => s.setDateMode)
     const setDeliveryFilter = useUIStore(s => s.setDeliveryFilter)
@@ -33,7 +33,7 @@ export default function Summary() {
         }, { orders: 0, pallets: 0, weight: 0, cube: 0 });
     }, [data]);
 
-    const avgOrders = Math.round(totals.orders / data.length);
+    const avgOrders = data.length > 0 ? Math.round(totals.orders / data.length) : 0;
 
     const peakDay = useMemo(() => {
         return data.reduce((max, day) =>
@@ -136,8 +136,8 @@ export default function Summary() {
                 <div className="summary-kpis">
 
                     <div className="kpi-card">
-                        <div className="kpi-label">Total Orders</div>
-                        <div className="kpi-value">{totals.orders}</div>
+                        <div className="kpi-label">Total Orders/Total Parent Orders</div>
+                        <div className="kpi-value">{totals.orders}/{parentOrders}</div>
                     </div>
 
                     <div className="kpi-card">

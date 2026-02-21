@@ -14,9 +14,10 @@ import { useUIStore } from '../Stores/UIStore';
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
+  showFilters?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
+const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
@@ -97,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
         <h1 className="page-title">Warehouse Order Dashboard</h1>
       </div>
       <div className="header-right">
-        {setLayout && (
+        {showFilters && setLayout && (
           <Dropdown value={layout} options={
             [0, 1].map(i => ({ label: `Layout ${i + 1}`, value: i }))
           } onChange={(e) => setLayout && setLayout(e.value)} 
@@ -105,18 +106,8 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
           />
         )}
         <Toast ref={toast} />
-        <FileUpload 
-          ref={fileRef}
-          mode="basic" 
-          name="demo[]" 
-          accept="text/csv" 
-          maxFileSize={1000000} 
-          uploadHandler={import_data}
-          auto
-          chooseLabel='Upload'
-          customUpload/>
         <div>
-          {setFilter && (
+          {showFilters && setFilter && (
             <Dropdown value={currentFilter} options={
               [
                 { label: 'All', value: 'All' },
@@ -131,19 +122,31 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
             />
            )}
           </div>
-        <div className="date-picker-wrapper">
-            <DatePicker
-                selectsRange
-                startDate={dateRange?.[0] ?? null}
-                endDate={dateRange?.[1] ?? null}
-                onChange={onDateChange}
-                isClearable
-                placeholderText="Select date range"
-                dateFormat="dd/MM/yyyy"
-            >
-              {dateType()}
-            </DatePicker>
-        </div>
+        {showFilters && dateRange && (
+          <div className="date-picker-wrapper">
+              <DatePicker
+                  selectsRange
+                  startDate={dateRange?.[0] ?? null}
+                  endDate={dateRange?.[1] ?? null}
+                  onChange={onDateChange}
+                  isClearable
+                  placeholderText="Select date range"
+                  dateFormat="dd/MM/yyyy"
+              >
+                {dateType()}
+              </DatePicker>
+          </div>
+        )}
+        <FileUpload 
+          ref={fileRef}
+          mode="basic" 
+          name="demo[]" 
+          accept="text/csv" 
+          maxFileSize={1000000} 
+          uploadHandler={import_data}
+          auto
+          chooseLabel='Upload'
+          customUpload/>
         <button onClick={toggleTheme}>
           {theme === 'dark' ? <MdLightMode /> : <MdDarkMode />}
         </button>
