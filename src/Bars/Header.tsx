@@ -5,18 +5,23 @@ import { FileUpload } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
 import { MdDarkMode, MdLightMode } from 'react-icons/md'
 import { useThemeStore } from '../Stores/ThemeStore';
+import DatePicker from 'react-datepicker';
+
+import "react-datepicker/dist/react-datepicker.css";
 
 
 interface HeaderProps {
   setFilter?: (filter: Filter) => void;
-  currentFilter: Filter;
+  currentFilter?: Filter;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
   setLayout?: (layout: number) => void;
   layout?: number;
+  dateRange?: [Date | null, Date | null];
+  setDateRange?: (range: [Date | null, Date | null]) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setFilter, currentFilter, onImportClick, setLayout, layout }) => {
+const Header: React.FC<HeaderProps> = ({ setFilter, currentFilter, onImportClick, setLayout, layout, dateRange, setDateRange }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
@@ -32,6 +37,10 @@ const Header: React.FC<HeaderProps> = ({ setFilter, currentFilter, onImportClick
     await onImportClick(file);
     fileRef.current?.clear();
   }
+
+  const onDateChange = (dates: [Date | null, Date | null]) => {
+    setDateRange?.(dates);
+}
 
   return (
     <header className="header">
@@ -73,10 +82,17 @@ const Header: React.FC<HeaderProps> = ({ setFilter, currentFilter, onImportClick
             />
            )}
           </div>
-        <button className="date-btn">
-          <span className="btn-icon">📅</span>
-          Delivery Date
-        </button>
+        <div className="date-picker-wrapper">
+            <DatePicker
+                selectsRange
+                startDate={dateRange?.[0] ?? null}
+                endDate={dateRange?.[1] ?? null}
+                onChange={onDateChange}
+                isClearable
+                placeholderText="Select date range"
+                dateFormat="dd/MM/yyyy"
+            />
+        </div>
         <button onClick={toggleTheme}>
           {theme === 'dark' ? <MdLightMode /> : <MdDarkMode />}
         </button>

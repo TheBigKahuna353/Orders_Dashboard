@@ -4,9 +4,9 @@ import { FileUpload } from 'primereact/fileupload';
 
 import { onTXTFileUpload } from "./import_data";
 
-import './Forecast.css';
+import './Workload.css';
 
-function Forecast() {
+function Workload() {
 
     const style: React.CSSProperties = {
           width: '80vw',
@@ -26,7 +26,7 @@ function Forecast() {
 
     return (
         <div>
-            <h1>Forecast</h1>
+            <h1>Workload</h1>
             <FileUpload 
                 ref={fileRef}
                 style={style} 
@@ -35,11 +35,11 @@ function Forecast() {
                 accept=".txt" 
                 maxFileSize={1000000} 
                 auto 
-                chooseLabel="Import CSV"
+                chooseLabel="Import TXT"
                 customUpload
                 uploadHandler={(e) => import_data(e.files[0])}/>
         </div>
     );
 }
 
-export default Forecast;
+export default Workload;

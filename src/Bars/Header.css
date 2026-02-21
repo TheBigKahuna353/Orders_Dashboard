@@ -53,23 +53,22 @@
   background-color: var(--bg-panel-hover);
 }
 
-.date-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: var(--bg-panel);
-  color: var(--text-primary);
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
+.date-picker-wrapper input {
+
+    background-color: var(--bg-panel);
+    color: var(--text-color);
+
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+
+    padding: 10px 10px;
+
+    width: 200px;
+
+    font-size: 14px;
+
 }
 
-.date-btn:hover {
-  background-color: var(--bg-panel-hover);
-}
 
 .user-avatar {
   position: relative;

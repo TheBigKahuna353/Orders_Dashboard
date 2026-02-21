@@ -31,13 +31,19 @@ export async function onCSVUpload(
       let customer = row["DeliverToName"]?.trim()
       const city = row["DeliverToAddressCity"]?.trim()
       const u = row["Comments"]?.trim() || ""
+      const deliverDate = row["Delivery Arrival Date"]?.trim() || ""
 
-      if (customer === "Foodstuffs South Island Limited" && city === "DUNEDIN") {
-        customer = "Foodstuffs Dunedin"
+      if (customer.includes("Foodstuffs")) {
+        if (city === "Dunedin") {
+          customer = "Foodstuffs Dunedin"
+        } else {
+          customer = "Foodstuffs Christchurch"
+        }
       }
+      const groupId = `${customer}-${deliverDate}`
 
-      if (locations[`${customer}`] === undefined) {
-        setLocation(`${customer}`, 0)
+      if (locations[groupId] === undefined) {
+        setLocation(groupId, 0)
       }
 
 
@@ -51,8 +57,9 @@ export async function onCSVUpload(
         volume: Number(row["ItemVolume"]) || 0,
         pallets: Number(row["ItemQty2"]) || 0,
         status: u ? "finished" : "picking",
-        groupId: `${customer}`,
-        deliverDate: row["Delivery Arrival Date"] || "",
+        groupId: groupId,
+        deliverDate: deliverDate,
+        DeliverStatus: row["DeliverStatus"]?.trim() || ""
       }
     })
 

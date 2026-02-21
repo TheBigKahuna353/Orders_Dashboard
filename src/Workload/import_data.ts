@@ -19,13 +19,13 @@ export async function parseTextFile(file: File): Promise<any[]> {
      });
 }
 
-export async function onTXTFileUpload(file: File): Promise<SalesOrder[]> {
+export async function onTXTFileUpload(file: File): Promise<plannedOrder[]> {
     try {
         const data = await parseTextFile(file);
 
         // Map the parsed data to the SalesOrder type
-        const orders: SalesOrder[] = data.map((row) => ({
-            orderNo: row["Order"]?.trim(), // This is actually Sales Order, but we don't have a delivery number in the txt file
+        const orders: plannedOrder[] = data.map((row) => ({
+            salesNo: row["Order"]?.trim(), // This is actually Sales Order, but we don't have a delivery number in the txt file
             customer: row["Ship-to"]?.trim(),
             city: row["Location"]?.trim(),
             deliverDate: row["DeliveryDate"]?.trim(),

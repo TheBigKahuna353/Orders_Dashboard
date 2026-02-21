@@ -14,7 +14,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 
 import './Dashboard.css'
-import { onCSVUpload } from '../Data/import_data.ts';
+import { onCSVUpload } from '../Data/import_ecargo.ts';
 import { MdDragIndicator } from 'react-icons/md';
 
 import { useOrdersStore } from '../Stores/OrdersStore.ts';
@@ -41,6 +41,7 @@ function Dashboard() {
     const [overlayWidths, setOverlayWidths] = useState<number[]>([]);
     const [scrollTop, setScrollTop] = useState(0);
     const [layout, setLayout] = useState(0);
+    const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
     
     const import_data = async (file: File) => {
       if ( !file ) return;
@@ -91,7 +92,7 @@ function Dashboard() {
         </DragOverlay>
         <div className="dashboard">
           <main className="main-content">
-            <Header setFilter={setFilter} currentFilter={filter} onImportClick={import_data} setLayout={setLayout} layout={layout} />
+            <Header setFilter={setFilter} currentFilter={filter} onImportClick={import_data} setLayout={setLayout} layout={layout} dateRange={dateRange} setDateRange={setDateRange} />
             <div className="dash-content">
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
                 switch (layout.id) {

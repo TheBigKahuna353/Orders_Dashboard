@@ -9,6 +9,7 @@ type Order = {
   status: "picking" | "finished"
   groupId: string
   deliverDate: string,
+  DeliverStatus: string
 }
 
 type GroupedOrder = {
@@ -24,8 +25,8 @@ type GroupedOrder = {
   deliverDate: string,
 }
 
-type SalesOrder = {
-  orderNo: string
+type plannedOrder = {
+  salesNo: string
   customer: string,
   city: string,
   deliverDate: string,
@@ -43,3 +44,27 @@ type WidgetLayout = {
 };
 
 type Filter = 'All' | 'All Out of Town' | 'Out of town small' | 'All Locals' | 'Locals small' | 'Bulk';
+
+type DailySummary = {
+    date: Date
+    metro: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    }
+
+    outOfTown: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    }
+
+    dispatch: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    }
+}

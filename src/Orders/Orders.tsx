@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import Header from "../Bars/Header";
-import {onCSVUpload} from "../Data/import_data";
+import {onCSVUpload} from "../Data/import_ecargo";
 import OrdersTable from '../OrdersTable/OrdersTable';
 
 

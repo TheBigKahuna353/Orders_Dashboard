@@ -1,9 +1,10 @@
 
 import { HashRouter, Route, Routes } from 'react-router';
 import Dashboard from './Dashboard/Dashboard';
-import Forecast from './Forecast/Forecast';
+import Workload from './Workload/Workload';
 import SideBar from './Bars/Sidebar';
 import Orders from './Orders/Orders';
+import Summary from './Summary/Summary';
 
 import { useThemeStore } from './Stores/ThemeStore';
 import { useEffect } from 'react';
@@ -28,10 +29,11 @@ export default function App() {
       <div className="app-container">
         <SideBar />
         <Routes>
-          <Route path="/forecast" element={<Forecast />} />
+          <Route path="/workload" element={<Workload />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/summary" element={<Summary />} />
         </Routes>
       </div>
       </HashRouter>
