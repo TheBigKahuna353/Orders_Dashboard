@@ -2,25 +2,27 @@ import { useMemo } from "react";
 import { useOrdersStore } from "../Stores/OrdersStore";
 import { filterOrder } from "./filter";
 import { useUIStore } from "../Stores/UIStore";
+import { toDateOnlyString } from "./Dates";
 
 
 export default function groupOrders(orders: Order[]): GroupedOrder[] {
   const groups = new Map<string, GroupedOrder>()
 
-  for (const order of orders) {
+    for (const order of orders) {
       // create group if it doesn't exist
       if (!groups.has(order.groupId)) {
         groups.set(order.groupId, {
-          groupId: order.groupId,
-          customer: order.customer,
-          city: order.city,
-          orders: [],
-          totalPallets: 0,
-          totalWeight: 0,
-          totalVolume: 0,
-          status: "finished",
-          palletsVarience: 0,
-          deliverDate: order.deliverDate,
+        groupId: order.groupId,
+        customer: order.customer,
+        city: order.city,
+        orders: [],
+        totalPallets: 0,
+        totalWeight: 0,
+        totalVolume: 0,
+        status: "finished",
+        palletsVarience: 0,
+        deliverDate: order.deliverDate,
+        pickDate: order.pickDate
         })
       }
 
@@ -63,18 +65,19 @@ function filterOrders(
         filter?: Filter | null
         location?: number | null
         dateRange?: [Date | null, Date | null]
+        dateMode?: "delivery" | "pick"
     }
 ): GroupedOrder[] {
 
-    const { filter, location, dateRange } = options
+    const { filter, location, dateRange, dateMode } = options
 
-    const start = dateRange?.[0]
-    const end = dateRange?.[1]
+    const start = dateRange?.[0] ? toDateOnlyString(dateRange[0]) : undefined
+    const end = dateRange?.[1] ? toDateOnlyString(dateRange[1]) : undefined
 
-    return orders.filter(order => {
+    const filtered = orders.filter(order => {
 
         // type filter
-        if (filter && !filterOrder(order, filter))
+        if (filter && !filterOrder(order.city, order.customer, filter))
             return false
 
         // location filter
@@ -85,8 +88,8 @@ function filterOrders(
 
         // workload date filter
         if (start || end) {
-
-            const d = new Date(order.deliverDate)
+            const d = order[dateMode === "pick" ? "pickDate" : "deliverDate"]
+            console.log("filtering order", order.groupId, "with date", d, "against range", start, "-", end)
 
             if (start && d < start)
                 return false
@@ -94,35 +97,33 @@ function filterOrders(
             if (end && d > end)
                 return false
         }
-
         return true
-
     })
+    return filtered
 }
 
 export function useFilteredOrders(
     location?: number | null
 ) {
 
-    const groupedOrders =
-        useOrdersStore(s => s.groupedOrders)
+    const groupedOrders = useOrdersStore(s => s.groupedOrders)
 
-    const locations =
-        useOrdersStore(s => s.locations)
+    const locations = useOrdersStore(s => s.locations)
 
-    const filter =
-        useUIStore(s => s.deliveryFilter)
+    const filter = useUIStore(s => s.deliveryFilter)
 
-    const dateRange =
-        useUIStore(s => s.dateRange)
+    const dateRange = useUIStore(s => s.dateRange)
+    
+    const dateMode = useUIStore(s => s.dateMode)
 
     return useMemo(() =>
         filterOrders(groupedOrders, locations, {
             filter,
             location,
-            dateRange
+            dateRange,
+            dateMode
         }),
-        [groupedOrders, locations, filter, location, dateRange]
+        [groupedOrders, locations, filter, location, dateRange, dateMode]
     )
 }
 

@@ -1,5 +1,7 @@
 import Papa from "papaparse"
 import { useOrdersStore } from "../Stores/OrdersStore"
+import { getPickDate } from "./filter"
+import { toDateOnlyString } from "./Dates"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCsvFile(file: File): Promise<any[]> {
@@ -34,11 +36,7 @@ export async function onCSVUpload(
       const deliverDate = row["Delivery Arrival Date"]?.trim() || ""
 
       if (customer.includes("Foodstuffs")) {
-        if (city === "Dunedin") {
-          customer = "Foodstuffs Dunedin"
-        } else {
-          customer = "Foodstuffs Christchurch"
-        }
+        customer = "Foodstuffs " + city
       }
       const groupId = `${customer}-${deliverDate}`
 
@@ -46,7 +44,7 @@ export async function onCSVUpload(
         setLocation(groupId, 0)
       }
 
-
+      const pickDate = getPickDate(customer, city, new Date(deliverDate))
 
       return {
         deliveryNo: row["DeliveryNo"],
@@ -58,8 +56,9 @@ export async function onCSVUpload(
         pallets: Number(row["ItemQty2"]) || 0,
         status: u ? "finished" : "picking",
         groupId: groupId,
-        deliverDate: deliverDate,
-        DeliverStatus: row["DeliverStatus"]?.trim() || ""
+        deliverDate: toDateOnlyString(new Date(deliverDate)),
+        DeliverStatus: row["DeliverStatus"]?.trim() || "",
+        pickDate: toDateOnlyString(pickDate)
       }
     })
 

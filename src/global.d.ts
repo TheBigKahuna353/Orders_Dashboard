@@ -10,6 +10,7 @@ type Order = {
   groupId: string
   deliverDate: string,
   DeliverStatus: string
+  pickDate: string
 }
 
 type GroupedOrder = {
@@ -23,6 +24,7 @@ type GroupedOrder = {
   status: "picking" | "finished",
   palletsVarience?: number
   deliverDate: string,
+  pickDate: string
 }
 
 type plannedOrder = {

@@ -26,6 +26,8 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
   const setFilter = useUIStore((s) => s.setDeliveryFilter)
   const layout = useUIStore((s) => s.dashboardLayout)
   const setLayout = useUIStore((s) => s.setDashboardLayout)
+  const dateMode = useUIStore((s) => s.dateMode)
+  const setDateMode = useUIStore((s) => s.setDateMode)
 
   const toast = useRef<Toast>(null);
   const fileRef = useRef<FileUpload>(null);
@@ -41,6 +43,52 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
 
   const onDateChange = (dates: [Date | null, Date | null]) => {
     setDateRange?.(dates);
+}
+
+  const dateType = () => {
+
+  const isPick = dateMode === "pick"
+
+  return (
+    <div className="datepicker-footer">
+
+      <div className="datepicker-mode-label">
+        Timeline
+      </div>
+
+      <div className="segmented-control">
+
+        {/* sliding background */}
+        <div
+          className={
+            isPick
+              ? "segment-highlight left"
+              : "segment-highlight right"
+          }
+        />
+
+        <button
+          type="button"
+          title='Order Pick Date'
+          className="segment-btn"
+          onClick={() => setDateMode("pick")}
+        >
+          Pick Date
+        </button>
+
+        <button
+          type="button"
+          title='Order Delivery Date'
+          className="segment-btn"
+          onClick={() => setDateMode("delivery")}
+        >
+          Delivery Date
+        </button>
+
+      </div>
+
+    </div>
+  )
 }
 
   return (
@@ -92,7 +140,9 @@ const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
                 isClearable
                 placeholderText="Select date range"
                 dateFormat="dd/MM/yyyy"
-            />
+            >
+              {dateType()}
+            </DatePicker>
         </div>
         <button onClick={toggleTheme}>
           {theme === 'dark' ? <MdLightMode /> : <MdDarkMode />}

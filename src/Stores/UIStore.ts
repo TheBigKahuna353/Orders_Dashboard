@@ -13,6 +13,8 @@ type UIState = {
     // GLOBAL FILTERS
     dateRange: [Date | null, Date | null]
     deliveryFilter: Filter
+    dateMode: "pick" | "delivery"
+    setDateMode: (mode: "pick" | "delivery") => void
 
     setDateRange: (range: [Date | null, Date | null]) => void
     setDeliveryFilter: (filter: Filter) => void
@@ -41,8 +43,8 @@ persist(
         // GLOBAL FILTERS
 
         dateRange: [null, null],
-
         deliveryFilter: "All",
+        dateMode: "delivery",
 
         setDateRange: (range) =>
             set({ dateRange: range }),
@@ -50,6 +52,8 @@ persist(
         setDeliveryFilter: (filter) =>
             set({ deliveryFilter: filter }),
 
+        setDateMode: (mode) =>
+            set({ dateMode: mode }),
 
         // TABLES PAGE SORT
          tableSort: {},

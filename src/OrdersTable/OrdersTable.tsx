@@ -85,7 +85,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
                 <Draggable setIsDragging={setIsDragging} key={index} id={order.groupId}>
                   <td className="customer-name">{order.customer}</td>
                   <td>{order.totalPallets}</td>
-                  <td>{order.totalWeight.toLocaleString()}</td>
+                  <td>{order.totalWeight}</td>
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
                   <td>{order.deliverDate}</td>

@@ -3,7 +3,8 @@ import './Summary.css'
 import { onCSVUpload } from "../Data/import_ecargo"
 import { useDailySummary } from "./getSummary"
 import { useMemo } from "react"
-
+import { useUIStore } from "../Stores/UIStore"
+import { useNavigate } from "react-router";
 
 
 import React from "react";
@@ -17,6 +18,10 @@ export default function Summary() {
     };
 
     const data = useDailySummary();
+    const setDateRange = useUIStore(s => s.setDateRange)
+    const setDateMode = useUIStore(s => s.setDateMode)
+    const setDeliveryFilter = useUIStore(s => s.setDeliveryFilter)
+    const navigate = useNavigate();
 
     const totals = useMemo(() => {
         return data.reduce((acc, day) => {
@@ -40,6 +45,23 @@ export default function Summary() {
         return Number(num.toFixed(decimals));
     };
 
+    const onClickRow = (category: string, day: Date) => {
+        switch (category) {
+            case "metro":
+                setDeliveryFilter("All Locals");
+                break;
+            case "outOfTown":
+                setDeliveryFilter("All Out of Town");
+                break;
+            case "dispatch":
+                setDeliveryFilter("All");
+                break;
+        }
+        setDateRange([day, day])
+        setDateMode("pick")
+        navigate("/orders")
+    }
+
     function renderCategory(
         label: string,
         key: "metro" | "outOfTown" | "dispatch",
@@ -54,11 +76,12 @@ export default function Summary() {
             <tr
                 key={label + metric}
                 className={
-                    highlight
+                    (highlight
                         ? "summary-highlight"
-                        : i === 3
-                        ? "summary-bottom-border"
-                        : ""
+                        : "") + 
+                    (i === 3
+                        ? " summary-bottom-border"
+                        : "")
                 }
                 onMouseEnter={() => setHoveredCategory(label)}
                 onMouseLeave={() => setHoveredCategory(null)}
@@ -78,13 +101,18 @@ export default function Summary() {
                 {data.map((day) => {
                     if (metric === "weight") {
                         return (
-                            <td key={day.date.getTime()}>
+                            <td key={day.date.getTime()}
+                                onClick={() => onClickRow(key, day.date)}
+                            >
                                 {round(day[key][metric]).toLocaleString()}
                             </td>
                         );
                     }
                     return (
-                        <td key={day.date.getTime()}>{round(day[key][metric])}</td>
+                        <td key={day.date.getTime()}
+                            onClick={() => onClickRow(key, day.date)}
+                        >
+                            {round(day[key][metric])}</td>
                     );
                 })}
                 <td className="summary-total-col">
@@ -137,46 +165,30 @@ export default function Summary() {
 
                 {/* DAILY TABLE */}
                 <div className="summary-table-container">
-
                     <table className="summary-table">
-
                         <thead>
-
                             <tr>
                                 <th className="summary-sticky-col">Category</th>
-                                <th className="summary-sticky-col">Date</th>
-
+                                <th className="summary-sticky-col">Pick Date</th>
                                 {data.map(day => (
                                     <th key={day.date.getTime()}>
-                                        {new Date(day.date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', weekday: 'short' })}
+                                        {day.date.toLocaleDateString('en-AU', { month: 'short', day: 'numeric', weekday: 'short' })}
                                     </th>
                                 ))}
-
                                 <th className="summary-total-col">Month Total</th>
                             </tr>
-
                         </thead>
-
-
                         <tbody>
-
                             {/* CHC METRO */}
                             {renderCategory("Metro", "metro")}
-
                             {/* OUT OF TOWN */}
                             {renderCategory("Out of Town", "outOfTown")}
-
                             {/* DISPATCH TOTAL */}
                             {renderCategory("TOTAL", "dispatch", true)}
-
                         </tbody>
-
                     </table>
-
                 </div>
-
             </div>
-
         </div>
     )
 }

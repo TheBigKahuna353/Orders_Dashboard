@@ -82,7 +82,7 @@ function Dashboard() {
                   <td style={{width: overlayWidths[4] || 0}}>{activeOrder.totalWeight.toLocaleString()}</td>
                   <td style={{width: overlayWidths[5] || 0}}>{activeOrder.totalVolume}</td>
                   <td style={{width: overlayWidths[6] || 0}}>{activeOrder.orders.length}</td>
-                  <td style={{width: overlayWidths[7] || 0}}>{activeOrder.deliverDate}</td>
+                  <td style={{width: overlayWidths[7] || 0}}>{activeOrder.deliverDate.toLocaleString()}</td>
                 </tr>
               </tbody>
             </table>

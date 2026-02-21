@@ -1,5 +1,5 @@
 import { useOrdersStore } from "../Stores/OrdersStore"
-import { filterOrder, getPickDate } from "../Data/filter"
+import { filterOrder } from "../Data/filter"
 
 export function useDailySummary() {
 
@@ -7,11 +7,10 @@ export function useDailySummary() {
 
     const map = new Map<string, DailySummary>()
 
-    console.log("getting summary for", groupedOrders.length, "groups")
 
     for (const group of groupedOrders) {
 
-        const date = getPickDate(group).toDateString()
+        const date = group.pickDate
 
         if (!map.has(date)) {
             map.set(date, {
@@ -24,12 +23,12 @@ export function useDailySummary() {
 
         const entry = map.get(date)!
         
-        if (filterOrder(group, 'All Locals')) {
+        if (filterOrder(group.city, group.customer, 'All Locals')) {
             entry.metro.orders += group.orders.length
             entry.metro.pallets += group.totalPallets
             entry.metro.weight += group.totalWeight
             entry.metro.cube += group.totalVolume
-        } else if (filterOrder(group, 'All Out of Town')) {
+        } else if (filterOrder(group.city, group.customer, 'All Out of Town')) {
             entry.outOfTown.orders += group.orders.length
             entry.outOfTown.pallets += group.totalPallets
             entry.outOfTown.weight += group.totalWeight

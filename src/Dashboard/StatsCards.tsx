@@ -27,9 +27,11 @@ const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
         <div className="card-content">
           <table className="table">
             <thead>
-              <th></th>
-              <th onClick={() => setSort(title, "customer")}>Customer</th>
-              <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
+              <tr>
+                <th></th>
+                <th onClick={() => setSort(title, "customer")}>Customer</th>
+                <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
+              </tr>
             </thead>
             <tbody>
               {orders.map((order, index) => {
