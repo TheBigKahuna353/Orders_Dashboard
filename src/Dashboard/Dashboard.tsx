@@ -41,6 +41,7 @@ function Dashboard() {
     const [activeOrder, setActiveOrder] = useState<GroupedOrder | null>(null);
     const [overlayWidths, setOverlayWidths] = useState<number[]>([]);
     const [scrollTop, setScrollTop] = useState(0);
+    const [isDragging, setIsDragging] = useState(false)
 
     const layout = useUIStore((s) => s.dashboardLayout)
     
@@ -99,7 +100,8 @@ function Dashboard() {
                       <GridItem key={layout.id} layout={layout}>
                         <OrdersTable 
                           scrollTop={scrollTop} 
-                          draggable  />
+                          draggable
+                          isDragging={isDragging} />
                       </GridItem>
                     );
                   case 'courier':
@@ -139,12 +141,14 @@ function Dashboard() {
       }
       setCur_Order(null);
       setActiveOrder(null);
+      setIsDragging(false)
     }
 
 
     function handleDragStart(event: any) {
       const id = event.active.id as string;
       setCur_Order(id);
+      setIsDragging(true)
 
       const order = groupedOrders.find(o => o.groupId === id);
       setActiveOrder(order ?? null);

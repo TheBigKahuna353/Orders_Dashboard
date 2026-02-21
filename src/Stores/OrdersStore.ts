@@ -11,6 +11,8 @@ type OrdersState = {
   upsertOrders: (orders: Order[]) => void
 
   setLocation: (groupId: string, location: number) => void
+
+    splitOrder: (orderId: string) => void
 }
 
 
@@ -34,9 +36,7 @@ export const useOrdersStore = create<OrdersState>()(
             for (const order of incoming) {
             map.set(order.deliveryNo, order)
             }
-
             const merged = Array.from(map.values())
-
             set({
                 orders: merged,
                 groupedOrders: groupOrders(merged),
@@ -49,7 +49,25 @@ export const useOrdersStore = create<OrdersState>()(
                     [groupId]: location,
                 },
             })
-        }
+        },
+
+        splitOrder: (orderId: string) =>
+            set((state) => {
+                let groupId;
+                const hash = Date.now()
+                const orders = state.orders.map(order => {
+                    if (order.deliveryNo !== orderId) return order
+                    groupId = order.groupId
+                    return {
+                        ...order,
+                        groupId: `${groupId}-${hash}`
+                    }
+                })
+                return { orders, groupedOrders: groupOrders(orders), locations: {
+                    ...state.locations,
+                    [`${groupId}-${hash}`]: 0
+                } }
+            })
         }),
         {
             name: 'orders-storage',

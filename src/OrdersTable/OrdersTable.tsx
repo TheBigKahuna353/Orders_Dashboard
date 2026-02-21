@@ -5,20 +5,21 @@ import { Droppable } from '../Dashboard/Droppable'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 import { MdChevronRight, MdExpandMore } from 'react-icons/md'
+import { useOrdersStore } from '../Stores/OrdersStore'
 
 interface props {
   scrollTop?: number,
   draggable?: boolean
   fullScreen?: boolean
+  isDragging?: boolean
 }
 
-const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
-  
-  const [isDragging, setIsDragging] = React.useState(false);
+const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDragging }) => {
   
   const orders = useVisibleOrders("orders-table", 0)
   const setSort = useUIStore(s => s.setTableSort) 
   const tableID = "orders-table";
+  const { splitOrder } = useOrdersStore()
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [closing, setClosing] = useState<Set<string>>(new Set())
@@ -78,7 +79,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
   const content = () => {
     return <div 
         style={{borderRadius: fullScreen ? '0' : '8px'}} 
-        className="table-container"
+        className={`table-container`}
         onScroll={(e) => {
           if (isDragging) {
             e.currentTarget.scrollTop = scrollTop || 0;
@@ -112,7 +113,6 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
               const mainRow = draggable ? (
 
                 <Draggable
-                  setIsDragging={setIsDragging}
                   key={order.groupId}
                   id={order.groupId}
                 >
@@ -210,6 +210,12 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
                             <div>Weight: {o.weight}</div>
                             <div>Volume: {o.volume}</div>
                             <div>Status: {o.status}</div>
+                             <button
+                              className="split-btn"
+                              onClick={() => splitOrder(o.deliveryNo)}
+                            >
+                              Split
+                            </button>
                           </div>
                         </div>
                       </td>

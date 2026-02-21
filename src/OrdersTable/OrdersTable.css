@@ -57,7 +57,43 @@
 
 .orders-table {
   width: 100%;
-  border-collapse: collapse;;
+  border-collapse: collapse;
+}
+
+.drag-lock {
+
+  overflow: hidden !important;
+
+  overscroll-behavior: none;
+
+  touch-action: none;
+
+}
+
+.split-btn {
+
+  margin-left: 12px;
+
+  padding: 2px 8px;
+
+  font-size: 12px;
+
+  border-radius: 4px;
+
+  border: 1px solid var(--border-color);
+
+  background: var(--bg-panel);
+
+  cursor: pointer;
+
+}
+
+.split-btn:hover {
+
+  background: var(--accent-color);
+
+  color: white;
+
 }
 
 .orders-table th {
@@ -140,7 +176,7 @@
 
   display: flex;
 
-  gap: 24px;
+  gap: 30px;
 
   padding: 10px 16px;
 

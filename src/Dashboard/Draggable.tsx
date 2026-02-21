@@ -25,9 +25,6 @@ function Draggable(props: DraggableProps) {
      padding: '0'
   }
   
-  if (props.setIsDragging) {
-    props.setIsDragging(isDragging);
-  }
 
   return (
     <tr ref={setNodeRef} style={style} data-dnd-id={props.id}>
