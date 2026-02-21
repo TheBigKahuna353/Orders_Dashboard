@@ -8,23 +8,24 @@ import { useThemeStore } from '../Stores/ThemeStore';
 import DatePicker from 'react-datepicker';
 
 import "react-datepicker/dist/react-datepicker.css";
+import { useUIStore } from '../Stores/UIStore';
 
 
 interface HeaderProps {
-  setFilter?: (filter: Filter) => void;
-  currentFilter?: Filter;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
-  setLayout?: (layout: number) => void;
-  layout?: number;
-  dateRange?: [Date | null, Date | null];
-  setDateRange?: (range: [Date | null, Date | null]) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setFilter, currentFilter, onImportClick, setLayout, layout, dateRange, setDateRange }) => {
+const Header: React.FC<HeaderProps> = ({ onImportClick }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const dateRange = useUIStore((s) => s.dateRange)
+  const setDateRange = useUIStore((s) => s.setDateRange)
+  const currentFilter = useUIStore((s) => s.deliveryFilter)
+  const setFilter = useUIStore((s) => s.setDeliveryFilter)
+  const layout = useUIStore((s) => s.dashboardLayout)
+  const setLayout = useUIStore((s) => s.setDashboardLayout)
 
   const toast = useRef<Toast>(null);
   const fileRef = useRef<FileUpload>(null);

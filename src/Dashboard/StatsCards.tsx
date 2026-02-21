@@ -2,7 +2,8 @@ import React from 'react'
 import './StatsCards.css'
 import { Droppable } from './Droppable'
 import { Draggable } from './Draggable'
-import { useOrdersStore } from '../Stores/OrdersStore'
+import { useVisibleOrders } from '../Data/GroupOrders'
+import { useUIStore } from '../Stores/UIStore'
 
 interface StatsCardsProps {
   rowSpan?: number
@@ -13,7 +14,8 @@ interface StatsCardsProps {
 
 const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
 
-  const { groupedOrders, locations } = useOrdersStore()
+  const orders = useVisibleOrders(title, Number(id))
+  const setSort = useUIStore(s => s.setTableSort) 
 
   return (
     <Droppable id={id}>
@@ -26,14 +28,11 @@ const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
           <table className="table">
             <thead>
               <th></th>
-              <th>Customer</th>
-              <th># Orders</th>
+              <th onClick={() => setSort(title, "customer")}>Customer</th>
+              <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
             </thead>
             <tbody>
-              {groupedOrders.map((order, index) => {
-                if (locations[order.groupId] !== Number(id)) {
-                  return null;
-                }
+              {orders.map((order, index) => {
                 return (
                   <Draggable key={index} id={order.groupId}>
                     <td className="stat-label">{order.customer}</td>

@@ -1,24 +1,25 @@
 import React from 'react'
 import './OrdersTable.css'
-import { filterOrder } from '../Data/filter'
 import { Draggable } from '../Dashboard/Draggable'
 import { Droppable } from '../Dashboard/Droppable'
-import { useOrdersStore } from '../Stores/OrdersStore'
+import { useVisibleOrders } from '../Data/GroupOrders'
+import { useUIStore } from '../Stores/UIStore'
 
 interface props {
-  filter?: Filter
   scrollTop?: number,
   draggable?: boolean
   fullScreen?: boolean
 }
 
-const OrdersTable: React.FC<props> = ({ filter, scrollTop, draggable, fullScreen }) => {
+const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen }) => {
   
   const [isDragging, setIsDragging] = React.useState(false);
   
-  const { groupedOrders, locations } = useOrdersStore()
+  const orders = useVisibleOrders("orders-table", 0)
+  const setSort = useUIStore(s => s.setTableSort) 
+  const tableID = "orders-table";
 
-  const [dropdownOpen, setDropdownOpen] = React.useState<boolean[]>(new Array(groupedOrders.length).fill(false));
+  const [dropdownOpen, setDropdownOpen] = React.useState<boolean[]>(new Array(orders.length).fill(false));
   const handleDropdown = (e: React.MouseEvent, index: number) => {
     e.stopPropagation();
     setDropdownOpen(prev => {
@@ -27,11 +28,15 @@ const OrdersTable: React.FC<props> = ({ filter, scrollTop, draggable, fullScreen
       return newOpen;
     });
   };
+
+  
+
   const closeDropdown = (index:number) => setDropdownOpen(prev => {
     const newOpen = [...prev];
     newOpen[index] = false;
     return newOpen;
   });
+  // Close dropdown on outside click
   React.useEffect(() => {
     if (!dropdownOpen.some(open => open)) return;
     const onClick = () => setDropdownOpen(prev => prev.map(() => false));
@@ -58,20 +63,17 @@ const OrdersTable: React.FC<props> = ({ filter, scrollTop, draggable, fullScreen
           <thead>
             <tr style={fullScreen ? stickyStyle : {}}>
               {draggable && <th style={{padding:"0"}}></th>}
-              <th>Customer Name <span className="sort-icon">↕️</span></th>
-              <th>Total Pallets <span className="sort-icon">↕️</span></th>
-              <th>Weight (kg) <span className="sort-icon">↕️</span></th>
-              <th>Volume (m3) <span className="sort-icon">↕️</span></th>
-              <th># Orders <span className="sort-icon">↕️</span></th>
-              <th>Delivery Date <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "customer")}>Customer Name <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "totalPallets")}>Total Pallets <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "totalVolume")}>Volume (m3) <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "ordersCount")}># Orders <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "deliverDate")}>Delivery Date <span className="sort-icon">↕️</span></th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {groupedOrders.map((order, index) => {
-              if ((filter && !filterOrder(order, filter)) || (locations && locations[order.groupId] !== 0)) {
-                return null;
-              }
+            {orders.map((order, index) => {
               // Dropdown state for each row
               const dropdownMenu = dropdownOpen[index] && (
                 <div className="order-action-dropdown">

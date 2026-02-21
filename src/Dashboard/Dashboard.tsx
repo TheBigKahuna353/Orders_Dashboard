@@ -18,6 +18,7 @@ import { onCSVUpload } from '../Data/import_ecargo.ts';
 import { MdDragIndicator } from 'react-icons/md';
 
 import { useOrdersStore } from '../Stores/OrdersStore.ts';
+import { useUIStore } from '../Stores/UIStore.ts';
 
 
 
@@ -40,17 +41,14 @@ function Dashboard() {
     const [activeOrder, setActiveOrder] = useState<GroupedOrder | null>(null);
     const [overlayWidths, setOverlayWidths] = useState<number[]>([]);
     const [scrollTop, setScrollTop] = useState(0);
-    const [layout, setLayout] = useState(0);
-    const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
+
+    const layout = useUIStore((s) => s.dashboardLayout)
     
     const import_data = async (file: File) => {
       if ( !file ) return;
       onCSVUpload(file);
     }
 
-  
-
-    const [filter, setFilter] = useState<Filter>('All');
 
     return (
       <PrimeReactProvider>
@@ -92,7 +90,7 @@ function Dashboard() {
         </DragOverlay>
         <div className="dashboard">
           <main className="main-content">
-            <Header setFilter={setFilter} currentFilter={filter} onImportClick={import_data} setLayout={setLayout} layout={layout} dateRange={dateRange} setDateRange={setDateRange} />
+            <Header onImportClick={import_data} />
             <div className="dash-content">
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
                 switch (layout.id) {
@@ -100,7 +98,6 @@ function Dashboard() {
                     return (
                       <GridItem key={layout.id} layout={layout}>
                         <OrdersTable 
-                          filter={filter} 
                           scrollTop={scrollTop} 
                           draggable  />
                       </GridItem>

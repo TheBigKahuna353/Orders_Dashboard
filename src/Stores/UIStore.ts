@@ -1,62 +1,101 @@
-// Stores/UIStore.ts
-
 import { create } from "zustand"
+import { persist } from "zustand/middleware"
 
 type SortDirection = "asc" | "desc"
 
+type PageSort = {
+    column: string | null
+    direction: SortDirection
+}
+
 type UIState = {
 
+    // GLOBAL FILTERS
     dateRange: [Date | null, Date | null]
-
-    orderFilter: Filter
-
-    sortBy: string | null
-    sortDirection: SortDirection
+    deliveryFilter: Filter
 
     setDateRange: (range: [Date | null, Date | null]) => void
+    setDeliveryFilter: (filter: Filter) => void
 
-    setOrderFilter: (filter: Filter) => void
 
-    setSort: (column: string) => void
+    // ALL TABLE SORTING
+    tableSort: Record<string, PageSort>
+
+    setTableSort: (tableId: string, column: string) => void
+
+    resetTableSort: (tableId: string) => void
+
+
+    // DASHBOARD STATE
+    dashboardLayout: number
+
+    setDashboardLayout: (layout: number) => void
 
 }
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>()(
+persist(
 
-    dateRange: [null, null],
+    (set, get) => ({
 
-    orderFilter: "All",
+        // GLOBAL FILTERS
 
-    sortBy: null,
-    sortDirection: "asc",
+        dateRange: [null, null],
 
-    setDateRange: (range) =>
-        set({ dateRange: range }),
+        deliveryFilter: "All",
 
-    setOrderFilter: (filter) =>
-        set({ orderFilter: filter }),
+        setDateRange: (range) =>
+            set({ dateRange: range }),
 
-    setSort: (column) => {
+        setDeliveryFilter: (filter) =>
+            set({ deliveryFilter: filter }),
 
-        const current = get()
 
-        if (current.sortBy === column) {
+        // TABLES PAGE SORT
+         tableSort: {},
 
-            set({
-                sortDirection:
-                    current.sortDirection === "asc"
-                        ? "desc"
-                        : "asc"
-            })
+        setTableSort: (tableId, column) => {
+        const current = get().tableSort[tableId]
 
+        if (current?.column === column) {
+            set(state => ({
+                tableSort: {
+                    ...state.tableSort,
+                    [tableId]: {
+                        column,
+                        direction:
+                            current.direction === "asc" ? "desc" : "asc"
+                    }
+                }
+            }))
         } else {
-
-            set({
-                sortBy: column,
-                sortDirection: "asc"
-            })
-
+            set(state => ({
+                tableSort: {
+                    ...state.tableSort,
+                    [tableId]: {
+                        column,
+                        direction: "asc"
+                    }
+                }
+            }))
         }
-    }
+    },
+    resetTableSort: (tableId) =>
+        set(state => ({
+            tableSort: {
+                ...state.tableSort,
+                [tableId]: {
+                    column: null,
+                    direction: "asc"
+                }
+            }
+        })),
 
-}))
+        // DASHBOARD LAYOUT
+        dashboardLayout: 0,
+        setDashboardLayout: (layout) => set({ dashboardLayout: layout })
+    }),
+    {
+        name: "ui-state"
+    }
+))
