@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './OrdersTable.css'
 import { Draggable } from '../Dashboard/Draggable'
 import { Droppable } from '../Dashboard/Droppable'
@@ -16,13 +16,15 @@ interface props {
 
 const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDragging }) => {
   
-  const orders = useVisibleOrders("orders-table", 0)
+  const orders = useVisibleOrders("orders-table", fullScreen ? null : 0)
   const setSort = useUIStore(s => s.setTableSort) 
   const tableID = "orders-table";
-  const { splitOrder } = useOrdersStore()
+  const { splitOrder, joinOrders } = useOrdersStore()
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [closing, setClosing] = useState<Set<string>>(new Set())
+  const [mergeSourceOrder, setMergeSourceOrder] = useState<Order | null>(null)
+
 
   const [dropdownOpen, setDropdownOpen] = React.useState<boolean[]>(new Array(orders.length).fill(false));
   const handleDropdown = (e: React.MouseEvent, index: number) => {
@@ -63,12 +65,24 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
     return newOpen;
   });
   // Close dropdown on outside click
-  React.useEffect(() => {
+  useEffect(() => {
     if (!dropdownOpen.some(open => open)) return;
     const onClick = () => setDropdownOpen(prev => prev.map(() => false));
     window.addEventListener('click', onClick);
     return () => window.removeEventListener('click', onClick);
   }, [dropdownOpen]);
+
+  // Close merge target on Escape key
+  useEffect(() => {
+  function handleEscape(e: KeyboardEvent) {
+    if (e.key === "Escape")
+      console.log("Escape pressed, clearing merge target")
+      setMergeSourceOrder(null)
+  }
+  window.addEventListener("keydown", handleEscape)
+  return () =>
+    window.removeEventListener("keydown", handleEscape)
+}, [])
 
   const stickyStyle: React.CSSProperties = {
     position: "sticky",
@@ -110,11 +124,20 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                 </div>
               )
 
+              const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.orders[0].customer && mergeSourceOrder.groupId !== order.groupId
+
               const mainRow = draggable ? (
 
                 <Draggable
                   key={order.groupId}
                   id={order.groupId}
+                  isMergeTarget={isMergeTarget}
+                  onClick={() => {
+                    if (mergeSourceOrder) {
+                      joinOrders(mergeSourceOrder.deliveryNo, order.orders[0].groupId)
+                      setMergeSourceOrder(null)
+                    }
+                  }}
                 >
 
                   {/* expand button */}
@@ -196,7 +219,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
 
                     <tr key={o.deliveryNo} className="expand-detail-row">
                       <td  style={{ padding: 0 }}/>
-                      <td  style={{ padding: 0 }}/>
+                      {draggable && <td  style={{ padding: 0 }}/>}
 
                       <td colSpan={7} style={{ padding: 0 }}>
                         <div className={
@@ -211,10 +234,20 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                             <div>Volume: {o.volume}</div>
                             <div>Status: {o.status}</div>
                              <button
-                              className="split-btn"
                               onClick={() => splitOrder(o.deliveryNo)}
                             >
                               Split
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (mergeSourceOrder?.deliveryNo === o.deliveryNo) {
+                                  setMergeSourceOrder(null)
+                                } else {
+                                setMergeSourceOrder(o)
+                                }
+                              }}
+                            >
+                              Merge
                             </button>
                           </div>
                         </div>

@@ -13,6 +13,7 @@ type OrdersState = {
   setLocation: (groupId: string, location: number) => void
 
     splitOrder: (orderId: string) => void
+    joinOrders: (sourceOrderId: string, targetGroupId: string) => void
 }
 
 
@@ -67,8 +68,18 @@ export const useOrdersStore = create<OrdersState>()(
                     ...state.locations,
                     [`${groupId}-${hash}`]: 0
                 } }
-            })
+            }),
+
+        joinOrders: (sourceOrderId: string, targetGroupId: string) =>
+            set((state) => {
+                const sourceOrder = state.orders.find(o => o.deliveryNo === sourceOrderId)
+                if (!sourceOrder) return state
+                sourceOrder.groupId = targetGroupId
+                console.log("Joining orders", sourceOrderId, "into", targetGroupId)
+                return { orders: state.orders, groupedOrders: groupOrders(state.orders) }
+            }),
         }),
+
         {
             name: 'orders-storage',
             partialize: (state) => ({

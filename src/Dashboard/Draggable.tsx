@@ -2,11 +2,13 @@ import React from 'react';
 import {useDraggable} from '@dnd-kit/core';
 
 import { MdDragIndicator } from "react-icons/md"; 
+import "./Draggable.css"
 
 interface DraggableProps {
   children?: React.ReactNode;
   id: string;
-  setIsDragging?: (dragging: boolean) => void;
+  isMergeTarget?: boolean| null;
+  onClick?: () => void;
 }
 
 function Draggable(props: DraggableProps) {
@@ -27,7 +29,7 @@ function Draggable(props: DraggableProps) {
   
 
   return (
-    <tr ref={setNodeRef} style={style} data-dnd-id={props.id}>
+    <tr ref={setNodeRef} style={style} data-dnd-id={props.id} className={props.isMergeTarget ? "merge-target" : ""} onClick={props.isMergeTarget ? props.onClick : undefined}>
       <td style={style2} {...listeners}  {...attributes}>
         <MdDragIndicator />
       </td>
