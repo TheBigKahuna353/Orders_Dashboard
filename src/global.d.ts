@@ -10,7 +10,6 @@ type Order = {
   groupId: string
   deliverDate: string,
   DeliverStatus: string
-  pickDate: string
 }
 
 type GroupedOrder = {
@@ -24,17 +23,38 @@ type GroupedOrder = {
   status: "picking" | "finished",
   palletsVarience?: number
   deliverDate: string,
-  pickDate: string
 }
 
-type plannedOrder = {
-  salesNo: string
-  customer: string,
-  city: string,
-  deliverDate: string,
-  cartons: number,
-  pallets: number,
-  volume: number
+type SalesOrderLine = {
+  salesOrderNo: string      // Document
+  customer: string          // Name 1
+  material: string
+  description: string
+  orderQty: number
+  confirmedQty: number
+  deliveryDate: Date
+  unit: string              // CSE, EA, BUN
+}
+
+type ProductMaster = {
+  material: string
+
+  description: string
+  casesPerPallet: number
+  casesPerLayer?: number
+}
+
+type CustomerMaster = {
+  customerName: string
+  city: string
+  pickLeadTime: number
+}
+
+type WorkloadDay = {
+  date: Date
+
+  fullPallets: number
+  voicePicks: number
 }
 
 type WidgetLayout = {

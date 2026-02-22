@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useOrdersStore } from "../Stores/OrdersStore";
-import { filterOrder } from "./filter";
+import { filterOrder, getPickDate } from "./filter";
 import { useUIStore } from "../Stores/UIStore";
-import { toDateOnlyString } from "./Dates";
+import { fromDateOnlyString, toDateOnlyString } from "./Dates";
+import { useCustomerStore } from "../Stores/CustomerStore";
 
 
 export default function groupOrders(orders: Order[]): GroupedOrder[] {
@@ -22,7 +23,6 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         status: "finished",
         palletsVarience: 0,
         deliverDate: order.deliverDate,
-        pickDate: order.pickDate
         })
       }
 
@@ -88,8 +88,7 @@ function filterOrders(
 
         // workload date filter
         if (start || end) {
-            const d = order[dateMode === "pick" ? "pickDate" : "deliverDate"]
-            console.log("filtering order", order.groupId, "with date", d, "against range", start, "-", end)
+            const d = dateMode === "pick" ? getPickDate(order.customer, fromDateOnlyString(order.deliverDate), useCustomerStore.getState().customerMaster) : order.deliverDate
 
             if (start && d < start)
                 return false

@@ -1,5 +1,7 @@
 import { useOrdersStore } from "../Stores/OrdersStore"
-import { filterOrder } from "../Data/filter"
+import { filterOrder, getPickDate } from "../Data/filter"
+import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
+import { useCustomerStore } from "../Stores/CustomerStore"
 
 export function useDailySummary() {
 
@@ -10,11 +12,10 @@ export function useDailySummary() {
 
     for (const group of groupedOrders) {
 
-        const date = group.pickDate
-
+        const date = toDateOnlyString(getPickDate(group.customer, fromDateOnlyString(group.deliverDate), useCustomerStore.getState().customerMaster))
         if (!map.has(date)) {
             map.set(date, {
-                date: new Date(date),
+                date: fromDateOnlyString(date),
                 metro: { orders: 0, pallets: 0, weight: 0, cube: 0 },
                 outOfTown: { orders: 0, pallets: 0, weight: 0, cube: 0 },
                 dispatch: { orders: 0, pallets: 0, weight: 0, cube: 0 }

@@ -91,7 +91,7 @@ function Dashboard() {
         </DragOverlay>
         <div className="dashboard">
           <main className="main-content">
-            <Header onImportClick={import_data} showFilters/>
+            <Header onImportClick={import_data} showFilters={{layout: true, filter: true, date: true}}/>
             <div className="dash-content">
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
                 switch (layout.id) {

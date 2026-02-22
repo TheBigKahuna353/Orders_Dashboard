@@ -21,7 +21,7 @@ export function filterOrder(city: string, customer: string, filter: string): boo
 }
 
 
-export function getPickDate(customer: string, city: string, deliverDate: Date): Date {
+export function getPickDateOLD(customer: string, city: string, deliverDate: Date): Date {
     const pickDate = new Date(deliverDate)
     if (customer === 'The Warehouse - Rolleston DC 845') {
         //console.log("order", order.groupId, "is rolleston, setting pick date to 3 days before deliver date")
@@ -35,8 +35,6 @@ export function getPickDate(customer: string, city: string, deliverDate: Date): 
     } else if (filterOrder(city, customer, 'Bulk')) {
         if (customer !== 'Woolworths New Zealand Limited') {
             if (pickDate.getTime() > new Date('2026-02-20').getTime()) {
-                console.log(pickDate, new Date('2026-02-20'))
-                console.log("order", customer, "is bulk but not woolworths, setting pick date to 1 day before deliver date")
                 pickDate.setDate(subtractWorkDays(deliverDate, 1).getDate())
             } else {
                 console.log("order", customer, "is bulk but not woolworths, setting pick date to same day as deliver date")
@@ -46,4 +44,41 @@ export function getPickDate(customer: string, city: string, deliverDate: Date): 
         alert(`Unknown filter for customer ${customer}`)
     }
     return pickDate
+}
+
+
+export function getLeadTime(customer: string, city: string): number {
+    if (customer === 'The Warehouse - Rolleston DC 845') {
+        //console.log("order", order.groupId, "is rolleston, setting pick date to 3 days before deliver date")
+        return 1
+    } else if (filterOrder(city, customer, 'Out of town small')) {
+       // console.log("order", order.groupId, "is out of town small, setting pick date to 2 days before deliver date")
+        return 2
+    } else if (filterOrder(city, customer, 'Locals small')) {
+        //console.log("order", order.groupId, "is local small, setting pick date to 1 day before deliver date")
+        return 1
+    } else if (filterOrder(city, customer, 'Bulk')) {
+        if (customer !== 'Woolworths New Zealand Limited') {
+            return 1 // this will be wrong for foodstuffs orders before 2026-02-20, but we will fix those manually in the customer store
+        }
+    } else {
+        alert(`Unknown filter for customer ${customer}`)
+    }
+    return 0
+}
+
+export function getPickDate(
+  customer: string,
+  deliverDate: Date,
+  customerMaster: Record<string, CustomerMaster>
+) {
+
+  const master = customerMaster[customer]
+
+  if (!master) return deliverDate
+
+  return subtractWorkDays(
+    deliverDate,
+    master.pickLeadTime
+  )
 }

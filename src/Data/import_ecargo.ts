@@ -1,7 +1,7 @@
 import Papa from "papaparse"
 import { useOrdersStore } from "../Stores/OrdersStore"
-import { getPickDate } from "./filter"
 import { toDateOnlyString } from "./Dates"
+import { useCustomerStore } from "../Stores/CustomerStore"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCsvFile(file: File): Promise<any[]> {
@@ -44,8 +44,6 @@ export async function onCSVUpload(
         setLocation(groupId, 0)
       }
 
-      const pickDate = getPickDate(customer, city, new Date(deliverDate))
-
       return {
         deliveryNo: row["DeliveryNo"],
         customer,
@@ -58,11 +56,11 @@ export async function onCSVUpload(
         groupId: groupId,
         deliverDate: toDateOnlyString(new Date(deliverDate)),
         DeliverStatus: row["DeliverStatus"]?.trim() || "",
-        pickDate: toDateOnlyString(pickDate)
       }
     })
 
     setOrders(parsedOrders.sort((a, b) => a.deliveryNo.localeCompare(b.deliveryNo)))
+    useCustomerStore.getState().upsertCustomersFromOrders(parsedOrders)
     console.log("Imported orders:", parsedOrders)
   } catch (err) {
     console.error("CSV import failed", err)

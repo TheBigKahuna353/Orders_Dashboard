@@ -1,19 +1,26 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import groupOrders from '../Data/GroupOrders'
+import { useCustomerStore } from './CustomerStore'
 
 type OrdersState = {
-  orders: Order[]
-  groupedOrders: GroupedOrder[]
-  locations: Record<string, number>
+    orders: Order[]
+    groupedOrders: GroupedOrder[]
+    locations: Record<string, number>
+    salesOrderLines: SalesOrderLine[]
+    productMaster: Record<string, ProductMaster>
 
-  setOrders: (orders: Order[]) => void
-  upsertOrders: (orders: Order[]) => void
+    setOrders: (orders: Order[]) => void
+    upsertOrders: (orders: Order[]) => void
+    setSalesOrderLines: (lines: SalesOrderLine[]) => void
+    setProductMaster: (master: Record<string, ProductMaster>) => void
 
-  setLocation: (groupId: string, location: number) => void
+    setLocation: (groupId: string, location: number) => void
 
     splitOrder: (orderId: string) => void
     joinOrders: (sourceOrderId: string, targetGroupId: string) => void
+
+
 }
 
 
@@ -23,6 +30,7 @@ export const useOrdersStore = create<OrdersState>()(
         orders: [],
         groupedOrders: [],
         locations: {},
+        productMaster: {},
 
         setOrders: (orders) =>
             set({
@@ -42,6 +50,7 @@ export const useOrdersStore = create<OrdersState>()(
                 orders: merged,
                 groupedOrders: groupOrders(merged),
             })
+            useCustomerStore.getState().upsertCustomersFromOrders(merged)
         },
         setLocation: (groupId, location) => {
             set({
@@ -51,6 +60,12 @@ export const useOrdersStore = create<OrdersState>()(
                 },
             })
         },
+
+        salesOrderLines: [],
+        setSalesOrderLines: (salesOrderLines) => set({ salesOrderLines }),
+
+        setProductMaster: (productMaster) => set({ productMaster }),
+
 
         splitOrder: (orderId: string) =>
             set((state) => {
@@ -85,6 +100,7 @@ export const useOrdersStore = create<OrdersState>()(
             partialize: (state) => ({
                 orders: state.orders,
                 locations: state.locations,
+                salesOrderLines: state.salesOrderLines,
             }),
             onRehydrateStorage: () => (state) => {
                 if (state?.orders) {

@@ -2,9 +2,8 @@ import React from "react";
 
 import { FileUpload } from 'primereact/fileupload';
 
-import { onTXTFileUpload } from "./import_data";
-
 import './Workload.css';
+import { importSalesData } from "../Data/SalesData";
 
 function Workload() {
 
@@ -19,7 +18,7 @@ function Workload() {
     const fileRef = React.useRef<FileUpload>(null);
 
     const import_data = async (file: File) => {
-        const data = await onTXTFileUpload(file);
+        const data = importSalesData(file);
         console.log("Parsed Data:", data);
         fileRef.current?.clear();
     };

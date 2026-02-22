@@ -14,7 +14,7 @@ import { useUIStore } from '../Stores/UIStore';
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
-  showFilters?: boolean;
+  showFilters?: {layout?: boolean, filter?: boolean, date?: boolean};
 }
 
 const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
@@ -98,7 +98,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
         <h1 className="page-title">Warehouse Order Dashboard</h1>
       </div>
       <div className="header-right">
-        {showFilters && setLayout && (
+        {showFilters && showFilters.layout && setLayout && (
           <Dropdown value={layout} options={
             [0, 1].map(i => ({ label: `Layout ${i + 1}`, value: i }))
           } onChange={(e) => setLayout && setLayout(e.value)} 
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
         )}
         <Toast ref={toast} />
         <div>
-          {showFilters && setFilter && (
+          {showFilters && showFilters.filter && setFilter && (
             <Dropdown value={currentFilter} options={
               [
                 { label: 'All', value: 'All' },
@@ -122,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
             />
            )}
           </div>
-        {showFilters && dateRange && (
+        {showFilters && showFilters.date && dateRange && (
           <div className="date-picker-wrapper">
               <DatePicker
                   selectsRange
