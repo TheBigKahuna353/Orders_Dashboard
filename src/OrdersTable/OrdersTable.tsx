@@ -102,8 +102,8 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
         <table className="orders-table">
           <thead>
             <tr style={fullScreen ? stickyStyle : {}}>
-              {draggable && <th style={{padding:"0"}}></th>}
-              <th style={{padding:"0"}}></th>
+              {draggable && <th style={{padding:"0", width: "16px"}}></th>}
+              <th style={{padding:"0", width: "32px"}}></th>
               <th onClick={() => setSort(tableID, "customer")}>Customer Name <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalPallets")}>Total Pallets <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
@@ -218,7 +218,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                   {isOpen && order.orders.map(o => (
 
                     <tr key={o.deliveryNo} className="expand-detail-row">
-                      <td  style={{ padding: 0 }}/>
+                      <td  style={{ padding: 0}}/>
                       {draggable && <td  style={{ padding: 0 }}/>}
 
                       <td colSpan={7} style={{ padding: 0 }}>

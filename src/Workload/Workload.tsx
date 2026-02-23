@@ -1,44 +1,45 @@
-import React from "react";
-
-import { FileUpload } from 'primereact/fileupload';
 
 import './Workload.css';
 import { importSalesData } from "../Data/SalesData";
+import { useWorkload } from "./getWorkload";
+import Header from "../Bars/Header";
+import { NextDayChart } from "./NextdayCharts";
+import { WorkloadTable } from "./WorkloadTable";
+
+const NextDayCard = ({ day }: { day: WorkloadDay }) => {
+    return (
+        <div className="next-day-card">
+            <h2>Next Pick Day</h2>
+            <h3>{day.date.toLocaleDateString()}</h3>
+            <div className="next-day-stats">
+                <div>Full Pallets: {day.fullPallets}</div>
+                <div>Voice Picks: {day.voicePicks}</div>
+            </div>
+        </div>
+    )
+}
 
 function Workload() {
 
-    const style: React.CSSProperties = {
-          width: '80vw',
-          margin: '20px auto',
-          position: 'absolute',
-          top: '70px',
-          left: '20px',
-        };
+    const handleSalesImport = async (file: File) => {
+        importSalesData(file)
+    }
 
-    const fileRef = React.useRef<FileUpload>(null);
-
-    const import_data = async (file: File) => {
-        const data = importSalesData(file);
-        console.log("Parsed Data:", data);
-        fileRef.current?.clear();
-    };
+    const workload = useWorkload()
+    const nextPickDay = workload[0]
 
     return (
-        <div>
-            <h1>Workload</h1>
-            <FileUpload 
-                ref={fileRef}
-                style={style} 
-                mode="basic" 
-                name="demo[]" 
-                accept=".txt" 
-                maxFileSize={1000000} 
-                auto 
-                chooseLabel="Import TXT"
-                customUpload
-                uploadHandler={(e) => import_data(e.files[0])}/>
+        <div className="workload-page">
+            <div className="workload-content">
+                <Header onImportClick={handleSalesImport}/>
+                <div className="workload-main">
+                    {nextPickDay && ( <NextDayCard day={nextPickDay} />)}
+                    <NextDayChart day={nextPickDay} />
+                    <WorkloadTable workload={workload} />
+                </div>
+            </div>
         </div>
-    );
+  )
 }
 
 export default Workload;

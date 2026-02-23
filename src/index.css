@@ -37,6 +37,10 @@ a:hover {
   color: var(--link-hover);
 }
 
+* {
+  box-sizing: border-box;
+}
+
 /* Buttons */
 button {
   border-radius: 8px;

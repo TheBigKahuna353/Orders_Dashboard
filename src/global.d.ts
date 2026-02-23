@@ -32,7 +32,7 @@ type SalesOrderLine = {
   description: string
   orderQty: number
   confirmedQty: number
-  deliveryDate: Date
+  deliveryDate: string     // Dlv.Date
   unit: string              // CSE, EA, BUN
 }
 

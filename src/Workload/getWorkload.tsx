@@ -3,6 +3,7 @@ import { useOrdersStore } from "../Stores/OrdersStore"
 import { calculatePickSplit } from "../Data/SalesData"
 import { useMemo } from "react"
 import { useCustomerStore } from "../Stores/CustomerStore"
+import { fromDateOnlyString } from "../Data/Dates"
 
 
 
@@ -22,9 +23,13 @@ function buildWorkload(
 
     const pickDate = getPickDate(
         line.customer,
-        line.deliveryDate,
+        fromDateOnlyString(line.deliveryDate),
         customerMaster
     )
+    const today = new Date()
+    today.setHours(0,0,0,0)
+
+    if (pickDate < today) continue
 
     const key = pickDate.toDateString()
 

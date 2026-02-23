@@ -97,7 +97,7 @@ export default function Summary() {
                         {label}
                     </td>
                 )}
-                <td className="summary-metric summary-sticky-col">{metric}</td>
+                <td className={`summary-metric summary-sticky-col ${isHovered ? " summary-category-hover" : ""}`}>{metric}</td>
                 {data.map((day) => {
                     if (metric === "weight") {
                         return (

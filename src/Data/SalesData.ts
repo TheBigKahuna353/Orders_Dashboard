@@ -1,13 +1,10 @@
 import { useOrdersStore } from "../Stores/OrdersStore"
 
 
-function parseSAPDate(value: string): Date {
+function parseSAPDate(value: string): string {
   if (!value) throw new Error("Missing date")
 
-  const [day, month, year] = value.split('.').map(Number)
-
-  // create LOCAL date (not ISO)
-  return new Date(year, month - 1, day)
+  return value.split('.').join('-') // convert from dd.mm.yyyy to dd-mm-yyyy for easier parsing
 }
 
 function parseNumber(value: string): number {
@@ -26,15 +23,17 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     line.includes("Dlv.Date")
   )
 
+
   if (headerIndex === -1) {
     throw new Error("SAP header row not found")
   }
 
   const headers = lines[headerIndex]
+    .trim()
     .split('\t')
-    .map(h => h.trim())
 
   const result: SalesOrderLine[] = []
+  console.log("Headers found:", headers)
 
   for (let i = headerIndex + 1; i < lines.length; i++) {
 
@@ -42,6 +41,7 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     if (!row) continue
 
     const cols = row.split('\t')
+    console.log("Parsing row", i, cols)
 
     const get = (name: string) =>
       cols[headers.indexOf(name)] ?? ''
@@ -77,8 +77,9 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
 }
 
 export const importSalesData = async (file: File) => {
-
-  const text = await file.text()
+  const buffer = await file.arrayBuffer()
+  const decoder = new TextDecoder("utf-16le")
+  const text = decoder.decode(buffer)
 
   const lines = parseSAPSalesExport(text)
 

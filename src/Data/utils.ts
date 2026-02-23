@@ -1,4 +1,10 @@
+import { fromDateOnlyString } from "./Dates";
+
 export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date {
+  if (typeof startDate === 'string') {
+    startDate = fromDateOnlyString(startDate)
+    console.warn("subtractWorkDays received a string instead of a Date object:", startDate)
+  }
   const newDate = new Date(startDate.getTime());
   let daysSubtracted = 0;
 
