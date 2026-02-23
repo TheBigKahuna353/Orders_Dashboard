@@ -7,15 +7,15 @@ export function filterOrder(city: string, customer: string, filter: string): boo
     } else if (filter === 'All Out of Town') {
         return !['hornby', 'rolleston', 'christchurch', 'riccarton'].includes(city.toLowerCase());
     } else if (filter === 'Out of town small') {
-        return !['hornby', 'rolleston', 'christchurch'].includes(city.toLowerCase()) && 
-            "Foodstuffs Dunedin" !== customer;
+        return !['hornby', 'rolleston', 'christchurch', 'riccarton'].includes(city.toLowerCase()) && 
+            "Foodstuffs DUNEDIN" !== customer;
     } else if (filter === 'All Locals') {
-        return ['hornby', 'rolleston', 'christchurch'].includes(city.toLowerCase());
+        return ['hornby', 'rolleston', 'christchurch', 'riccarton'].includes(city.toLowerCase());
     } else if (filter === 'Locals small') {
         return ['hornby', 'rolleston', 'christchurch', 'riccarton'].includes(city.toLowerCase()) && 
-           !['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs Dunedin", "Foodstuffs (South Island)"].includes(customer);
+           !['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs DUNEDIN", "Foodstuffs CHRISTCHURCH"].includes(customer);
     } else if (filter === 'Bulk') {
-        return ['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs Dunedin", "Foodstuffs (South Island)"].includes(customer);
+        return ['Woolworths New Zealand Limited', 'Foodstuffs South Island Limited', "Foodstuffs DUNEDIN", "Foodstuffs CHRISTCHURCH"].includes(customer);
     } 
     return false;
 }

@@ -14,7 +14,7 @@ import { useUIStore } from '../Stores/UIStore';
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
-  showFilters?: {layout?: boolean, filter?: boolean, date?: boolean};
+  showFilters?: {layout?: boolean, filter?: boolean, date?: boolean, filetype?: string};
 }
 
 const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
@@ -43,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
   }
 
   const onDateChange = (dates: [Date | null, Date | null]) => {
+    console.log(dates);
     setDateRange?.(dates);
 }
 
@@ -141,7 +142,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
           ref={fileRef}
           mode="basic" 
           name="demo[]" 
-          accept="text/csv" 
+          accept={showFilters?.filetype ?? "text/*"} 
           maxFileSize={1000000} 
           uploadHandler={import_data}
           auto

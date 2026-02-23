@@ -88,13 +88,20 @@ function filterOrders(
 
         // workload date filter
         if (start || end) {
-            const d = dateMode === "pick" ? getPickDate(order.customer, fromDateOnlyString(order.deliverDate), useCustomerStore.getState().customerMaster) : order.deliverDate
-
-            if (start && d < start)
+            const d = dateMode === "pick" ? toDateOnlyString(getPickDate(
+                order.customer, 
+                fromDateOnlyString(order.deliverDate), 
+                useCustomerStore.getState().customerMaster))
+                 : order.deliverDate
+            if (start && d < start) {
+                console.log("filtered out by start date", order.groupId, d, start)
                 return false
+            }
 
-            if (end && d > end)
+            if (end && d > end) {
+                console.log("filtered out by end date", order.groupId, d, end)
                 return false
+            }
         }
         return true
     })

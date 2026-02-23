@@ -9,6 +9,7 @@ const Sidebar: React.FC = () => {
     { icon: '📦', label: 'Orders', active: location.pathname === '/orders' },
     { icon: '🚚', label: 'Workload', active: location.pathname === '/workload' },
     { icon: '📈', label: 'Summary', active: location.pathname === '/summary' },
+    { icon: '🔍', label: 'Cycle Count', active: location.pathname === '/cyclecount' },
     { icon: '⚙️', label: 'Settings', active: false }
   ]
 
@@ -22,7 +23,7 @@ const Sidebar: React.FC = () => {
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => (
-          <Link key={index} to={item.label.toLowerCase()}>
+          <Link key={index} to={item.label.toLowerCase().replace(' ', '')}>
             <div className={`nav-item ${item.active ? 'active' : ''}`}>
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>

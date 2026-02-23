@@ -21,13 +21,12 @@ export const useCustomerStore = create<CustomerState>()(
         (set) => ({
             customerMaster: {},
             upsertCustomersFromOrders: (orders) =>
-                set((state) => {
-
+                set((state) => {            
                     const updated = { ...state.customerMaster }
 
                     for (const order of orders) {
-
                         if (!updated[order.customer]) {
+                            console.log("adding customer to master", order.customer)
 
                             updated[order.customer] = {
                                 customerName: order.customer,

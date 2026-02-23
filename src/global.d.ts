@@ -90,3 +90,11 @@ type DailySummary = {
         cube: number
     }
 }
+
+type CycleCountRecord = {
+    material: string
+    pallets: number
+    cases: number
+    palletsVariance: number
+    casesVariance: number
+}

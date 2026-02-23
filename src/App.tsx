@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import PrimeReact from 'primereact/api';
 
 import './App.css'
+import CycleCount from './CycleCount/CycleCount';
 
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/summary" element={<Summary />} />
+          <Route path="/cyclecount" element={<CycleCount />} />
         </Routes>
       </div>
       </HashRouter>

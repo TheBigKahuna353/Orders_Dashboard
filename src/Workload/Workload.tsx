@@ -31,7 +31,7 @@ function Workload() {
     return (
         <div className="workload-page">
             <div className="workload-content">
-                <Header onImportClick={handleSalesImport}/>
+                <Header onImportClick={handleSalesImport} showFilters={{layout: false, filter: false, date: true, filetype: '.txt'}}/>
                 <div className="workload-main">
                     {nextPickDay && ( <NextDayCard day={nextPickDay} />)}
                     <NextDayChart day={nextPickDay} />
