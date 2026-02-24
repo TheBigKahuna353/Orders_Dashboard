@@ -33,6 +33,10 @@ type UIState = {
 
     setDashboardLayout: (layout: number) => void
 
+    // CYCLECOUNT STATE
+    cycleCountView: "latest" | "weekly" | "all"
+    setCycleCountView: (view: "latest" | "weekly" | "all") => void
+
 }
 
 export const useUIStore = create<UIState>()(
@@ -97,7 +101,12 @@ persist(
 
         // DASHBOARD LAYOUT
         dashboardLayout: 0,
-        setDashboardLayout: (layout) => set({ dashboardLayout: layout })
+        setDashboardLayout: (layout) => set({ dashboardLayout: layout }),
+
+        // CYCLE COUNT VIEW
+        cycleCountView: "latest",
+        setCycleCountView: (view) => set({ cycleCountView: view })
+
     }),
     {
         name: "ui-state"

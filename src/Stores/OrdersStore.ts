@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import groupOrders from '../Data/GroupOrders'
 import { useCustomerStore } from './CustomerStore'
+import getProductMasterData from '../Data/productMasterData'
 
 type OrdersState = {
     orders: Order[]
@@ -30,7 +31,7 @@ export const useOrdersStore = create<OrdersState>()(
         orders: [],
         groupedOrders: [],
         locations: {},
-        productMaster: {},
+        productMaster: getProductMasterData(),
 
         setOrders: (orders) =>
             set({

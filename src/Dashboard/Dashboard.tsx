@@ -79,7 +79,7 @@ function Dashboard() {
                   </td>
                   <td style={{width: overlayWidths[1] || 0}}>{activeOrder.customer}</td>
                   <td style={{width: overlayWidths[2] || 0}}>{activeOrder.totalPallets}</td>
-                  <td style={{width: overlayWidths[3] || 0}}>{activeOrder.palletsVarience}</td>
+                  <td style={{width: overlayWidths[3] || 0}}>{activeOrder.palletsVariance}</td>
                   <td style={{width: overlayWidths[4] || 0}}>{activeOrder.totalWeight.toLocaleString()}</td>
                   <td style={{width: overlayWidths[5] || 0}}>{activeOrder.totalVolume}</td>
                   <td style={{width: overlayWidths[6] || 0}}>{activeOrder.orders.length}</td>

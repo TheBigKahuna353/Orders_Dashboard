@@ -21,7 +21,7 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         totalWeight: 0,
         totalVolume: 0,
         status: "finished",
-        palletsVarience: 0,
+        palletsVariance: 0,
         deliverDate: order.deliverDate,
         })
       }
@@ -42,10 +42,10 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
     // which is the range the pallets could be in.
     // this is calculated as num of orders that have 1 pallet - 1 if all orders have 1 pallet
     if (group.orders.length > 1) {
-        group.palletsVarience! = 0;
+        group.palletsVariance! = 0;
         for (const o of group.orders) {
             if (o.pallets === 1 && o.status !== "finished") {
-                group.palletsVarience! += 1;
+                group.palletsVariance! += 1;
             }
         }
     }

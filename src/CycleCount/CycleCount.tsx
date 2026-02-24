@@ -1,19 +1,36 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import Header from "../Bars/Header";
 import { onExcelUpload } from "../Data/Excel";
 import { useUIStore } from "../Stores/UIStore";
 import './CycleCount.css';
-import useSortedData from "./Getdata";
+import useSortedData, { useWeeklyData } from "./Getdata";
+import CycleCountDateModal from "./CycleCountDateModal";
 
 export default function CycleCount() {
 
-    const import_data = async (file: File) => {
-        if ( !file ) return;
-        await onExcelUpload(file);
-    }
     const tableId = 'CycleCount'
     const { setTableSort, tableSort } = useUIStore()
     const data = useSortedData(tableId)
+    const weeklyData = useWeeklyData()
+    const [pendingFile, setPendingFile] = useState<File | null>(null)
+    const [showDateModal, setShowDateModal] = useState(false)
+    const { cycleCountView, setCycleCountView } = useUIStore()
+    const displayData = cycleCountView === "weekly" ? weeklyData : data
 
+    const import_data = async (file: File) => {
+        if ( !file ) return;
+        setPendingFile(file)
+        setShowDateModal(true)
+    }
+
+    const onConfirmDate = async (date: Date) => {
+        setShowDateModal(false)
+        if (pendingFile) {
+            await onExcelUpload(pendingFile, date)
+            setPendingFile(null)
+        }
+    }
 
   const totalSkus = data.length
   const totalPalletVariance = data.reduce((sum, d) => sum + d.palletsVariance, 0)
@@ -24,9 +41,42 @@ export default function CycleCount() {
 
   return (
     <div className="cycle-count-page">
+        {showDateModal && (
+            <CycleCountDateModal
+                isOpen={showDateModal}
+                onClose={() => setShowDateModal(false)}
+                onConfirm={(date) => {
+                    console.log("Selected date:", date)
+                    onConfirmDate(date)
+                }}
+            />
+        )}
         <div className="cycle-count-content">
             <Header onImportClick={import_data} showFilters={{date: true, filetype: '.xlsx'}}/>
             <div className="cycle-dashboard">
+
+            <div className="view-toggle">
+                <button
+                    className={cycleCountView === "latest" ? "active" : ""}
+                    onClick={() => setCycleCountView("latest")}
+                >
+                    Latest
+                </button>
+
+                <button
+                    className={cycleCountView === "weekly" ? "active" : ""}
+                    onClick={() => setCycleCountView("weekly")}
+                >
+                    Weekly
+                </button>
+
+                <button
+                    className={cycleCountView === "all" ? "active" : ""}
+                    onClick={() => setCycleCountView("all")}
+                >
+                    All Counts
+                </button>
+            </div>
 
             {/* SUMMARY CARDS */}
             <div className="summary-grid">
@@ -56,13 +106,24 @@ export default function CycleCount() {
                 <table className="cycle-table">
                 <thead>
                     <tr>
+                        {cycleCountView !== "latest"  && (
+                            <th
+                                onClick={() => setTableSort(tableId, "countDate")}
+                                className={
+                                tableSort[tableId]?.column === "countDate" ? "active-sort" : ""
+                                }
+                            >
+                                Date
+                            </th>
+                        )}
                     {[
-                        { key: "material", label: "Material" },
+                        cycleCountView !== "weekly" ? { key: "material", label: "Material" } : null,
                         { key: "pallets", label: "Pallets" },
                         { key: "cases", label: "Cases" },
                         { key: "palletsVariance", label: "Pallet Variance" },
                         { key: "casesVariance", label: "Case Variance" },
                     ].map(col => (
+                        col &&
                         <th
                         key={col.key}
                         onClick={() => setTableSort(tableId, col.key)}
@@ -84,17 +145,24 @@ export default function CycleCount() {
                 </thead>
 
                 <tbody>
-                    {data.map(record => {
+                    {displayData.map(record => {
                     const hasVariance =
                         record.palletsVariance !== 0 ||
                         record.casesVariance !== 0
 
                     return (
                         <tr
-                        key={record.material}
+                        key={record.countDate + (cycleCountView === "weekly" ? record.countDate : (record as any).material)}
                         className={hasVariance ? "variance-row" : ""}
                         >
-                        <td className="material-cell">{record.material}</td>
+                        {cycleCountView !== "latest"  && (
+                            <td>
+                                {record.countDate}
+                            </td>
+                            )}
+                        {cycleCountView !== "weekly" && (
+                            <td className="material-cell">{(record as any).material}</td>
+                        )}
                         <td>{record.pallets}</td>
                         <td>{record.cases}</td>
                         <td

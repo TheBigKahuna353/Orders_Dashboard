@@ -144,3 +144,76 @@
     flex-direction: column;
     overflow: hidden;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-panel {
+  background: var(--bg-panel);
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text-primary);
+}
+
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: var(--button-bg);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.view-toggle button {
+  background: var(--button-bg);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-toggle button:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.view-toggle button.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}

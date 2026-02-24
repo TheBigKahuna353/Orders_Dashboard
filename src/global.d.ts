@@ -21,7 +21,7 @@ type GroupedOrder = {
   totalWeight: number
   totalVolume: number
   status: "picking" | "finished",
-  palletsVarience?: number
+  palletsVariance?: number
   deliverDate: string,
 }
 
@@ -39,9 +39,9 @@ type SalesOrderLine = {
 type ProductMaster = {
   material: string
 
-  description: string
+  description?: string
   casesPerPallet: number
-  casesPerLayer?: number
+  casesPerLayer?: number | null
 }
 
 type CustomerMaster = {
@@ -93,6 +93,15 @@ type DailySummary = {
 
 type CycleCountRecord = {
     material: string
+    pallets: number
+    cases: number
+    palletsVariance: number
+    casesVariance: number
+    countDate: string
+}
+
+type WeeklyCycleCountSummary = {
+    countDate: string
     pallets: number
     cases: number
     palletsVariance: number

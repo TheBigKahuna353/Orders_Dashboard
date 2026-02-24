@@ -14,10 +14,17 @@ import { useUIStore } from '../Stores/UIStore';
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick: (e: any) => void;
-  showFilters?: {layout?: boolean, filter?: boolean, date?: boolean, filetype?: string};
+  onExportClick?: () => void;
+  showFilters?: {
+    layout?: boolean, 
+    filter?: boolean, 
+    date?: boolean, 
+    filetype?: string,
+    export?: boolean
+  };
 }
 
-const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
+const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilters }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
@@ -49,49 +56,49 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
 
   const dateType = () => {
 
-  const isPick = dateMode === "pick"
+    const isPick = dateMode === "pick"
 
-  return (
-    <div className="datepicker-footer">
+    return (
+      <div className="datepicker-footer">
 
-      <div className="datepicker-mode-label">
-        Timeline
+        <div className="datepicker-mode-label">
+          Timeline
+        </div>
+
+        <div className="segmented-control">
+
+          {/* sliding background */}
+          <div
+            className={
+              isPick
+                ? "segment-highlight left"
+                : "segment-highlight right"
+            }
+          />
+
+          <button
+            type="button"
+            title='Order Pick Date'
+            className="segment-btn"
+            onClick={() => setDateMode("pick")}
+          >
+            Pick Date
+          </button>
+
+          <button
+            type="button"
+            title='Order Delivery Date'
+            className="segment-btn"
+            onClick={() => setDateMode("delivery")}
+          >
+            Delivery Date
+          </button>
+
+        </div>
+
       </div>
-
-      <div className="segmented-control">
-
-        {/* sliding background */}
-        <div
-          className={
-            isPick
-              ? "segment-highlight left"
-              : "segment-highlight right"
-          }
-        />
-
-        <button
-          type="button"
-          title='Order Pick Date'
-          className="segment-btn"
-          onClick={() => setDateMode("pick")}
-        >
-          Pick Date
-        </button>
-
-        <button
-          type="button"
-          title='Order Delivery Date'
-          className="segment-btn"
-          onClick={() => setDateMode("delivery")}
-        >
-          Delivery Date
-        </button>
-
-      </div>
-
-    </div>
-  )
-}
+    )
+  }
 
   return (
     <header className="header">
@@ -99,6 +106,11 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, showFilters }) => {
         <h1 className="page-title">Warehouse Order Dashboard</h1>
       </div>
       <div className="header-right">
+        {showFilters && showFilters.export && onExportClick && (
+          <button onClick={() => onExportClick()}>
+            Export
+          </button>
+        )}
         {showFilters && showFilters.layout && setLayout && (
           <Dropdown value={layout} options={
             [0, 1].map(i => ({ label: `Layout ${i + 1}`, value: i }))

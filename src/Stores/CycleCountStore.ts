@@ -22,7 +22,7 @@ export const useCycleCountStore = create<CycleCountState>()(
                     const updated = { ...state.recordMaster }
 
                     for (const record of records) {
-                        updated[record.material] = record
+                        updated[record.material + record.countDate] = record
                     }
                     return { recordMaster: updated }
                 }),

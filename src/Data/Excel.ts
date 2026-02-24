@@ -1,11 +1,16 @@
 import * as XLSX from "xlsx"
 import { useCycleCountStore } from "../Stores/CycleCountStore"
+import { toDateOnlyString } from "./Dates"
 
 
-async function parseExcelFile(file: File): Promise<CycleCountRecord[]> {
+async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     const results: Map<string, CycleCountRecord> = new Map()
+    // set countdate to the next Friday after the uploaded date (assuming cycle counts are always on Fridays)
+    const dayOfWeek = date.getDay()
+    const daysUntilFriday = (5 - dayOfWeek + 7) % 7
+    date.setDate(date.getDate() + daysUntilFriday)
 
     reader.onload = (e) => {
       try {
@@ -50,7 +55,8 @@ async function parseExcelFile(file: File): Promise<CycleCountRecord[]> {
                     pallets: type === 'bulk' ? pallets : 0,
                     cases: type === 'pik' ? cases : 0,
                     palletsVariance: type === 'bulk' ? varience : 0,
-                    casesVariance: type === 'pik' ? varience : 0
+                    casesVariance: type === 'pik' ? varience : 0,
+                    countDate: toDateOnlyString(date)
                 })
             }
         })
@@ -69,12 +75,32 @@ async function parseExcelFile(file: File): Promise<CycleCountRecord[]> {
 }
 
 
-export async function onExcelUpload(file: File) {
+export async function onExcelUpload(file: File, date: Date) {
   try {
-    const data = await (await parseExcelFile(file))
+    const data = await (await parseExcelFile(file, date))
     console.log("Parsed Excel Data:", data)
-    useCycleCountStore.getState().upsertRecordsFromExcel(data)
+    useCycleCountStore.getState().upsertRecordsFromExcel(data,)
   } catch (err) {
     console.error("Error uploading Excel file:", err)
   }
+}
+
+
+
+
+
+
+/**
+ * Exports a table DOM node to an Excel file.
+ * @param tableId The id of the table element in the DOM
+ * @param filename The filename for the downloaded Excel file
+ */
+export function exportTableToExcel(tableId: string, filename = 'table.xlsx') {
+  const table = document.getElementById(tableId);
+  if (!table) {
+    console.error('Table not found:', tableId);
+    return;
+  }
+  const wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+  XLSX.writeFile(wb, filename);
 }
