@@ -26,7 +26,7 @@ function mapFormatAToOrders(rows: Record<string, string>[], locations: Record<st
   return rows.map((row) => {
     let customer = row["DeliverToName"]?.trim()
     const city = row["DeliverToAddressCity"]?.trim()
-    const u = row["Comments"]?.trim() || ""
+    const comments = row["Comments"]?.trim() || ""
     const deliverDate = row["Delivery Arrival Date"]?.trim() || ""
 
     if (customer.includes("Foodstuffs")) {
@@ -43,14 +43,15 @@ function mapFormatAToOrders(rows: Record<string, string>[], locations: Record<st
       deliveryNo: row["DeliveryNo"],
       customer,
       city,
-      u,
+      comments,
       weight: Number(row["ItemWeight"]) || 0,
       volume: Number(row["ItemVolume"]) || 0,
       pallets: Number(row["ItemQty2"]) || 0,
-      status: u ? "finished" : "picking",
+      status: comments ? "finished" : "picking",
       groupId,
       deliverDate: toDateOnlyString(new Date(deliverDate)),
       DeliverStatus: row["DeliverStatus"]?.trim() || "",
+      pickupType: "delivery",
     }
   })
 }
@@ -65,7 +66,7 @@ function mapFormatBToOrders(rows: Record<string, string>[], locations: Record<st
   return rows.map((row) => {
     let customer = row["Deliver To"]?.trim()
     const city = row["City"]?.trim()
-    const u = row["Comments"]?.trim() || ""
+    const comments = row["Comments"]?.trim() || ""
     const deliverDate = row["Planned Deliver Date"]?.split(" ")[0] || ""
     
     if (!customer || !city || !deliverDate) {
@@ -87,14 +88,15 @@ function mapFormatBToOrders(rows: Record<string, string>[], locations: Record<st
       deliveryNo: row["Consignment "],
       customer,
       city,
-      u,
+      comments,
       weight: Number(row["Weight"]) || 0,
       volume: Number(row["Volume"]) || 0,
       pallets: Number(row["Qty 4"]) || 0,
-      status: u ? "finished" : "picking",
+      status: comments ? "finished" : "picking",
       groupId,
       deliverDate: parseDate(deliverDate),
       DeliverStatus: row["Status"]?.trim() || "",
+      pickupType: "delivery",
     }
   })
   .filter((order): order is Order => order !== null) // filter out nulls from skipped rows
@@ -113,9 +115,10 @@ async function detectFormat(file: File): Promise<"formatA" | "formatB"> {
 
 export async function onCSVUpload(
   file: File,
+  update: boolean = false
 ) {
   console.log("Importing file:", file.name)
-  const { setOrders, setLocation, locations } = useOrdersStore.getState()
+  const { setOrders, setLocation, locations, upsertOrders } = useOrdersStore.getState()
   try {
     const format = await detectFormat(file)
     const rows = await parseCsvFile(file, format)
@@ -130,8 +133,11 @@ export async function onCSVUpload(
     }
 
 
-
-    setOrders(parsedOrders.sort((a, b) => a.deliveryNo.localeCompare(b.deliveryNo)))
+    if (update) {
+      upsertOrders(parsedOrders)
+    } else {
+      setOrders(parsedOrders)
+    }
     useCustomerStore.getState().upsertCustomersFromOrders(parsedOrders)
     console.log("Imported orders:", parsedOrders)
   } catch (err) {

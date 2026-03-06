@@ -4,8 +4,6 @@ import {DndContext, pointerWithin, DragOverlay} from '@dnd-kit/core';
 
 
 import Header from '../Bars/Header.tsx'
-import OrdersTable from '../OrdersTable/OrdersTable.tsx'
-import StatsCards from './StatsCards.tsx'
 
 import GridItem from '../Layout/GridItem.tsx';
 import {DASHBOARD_LAYOUTS} from '../Layout/Layouts.ts';
@@ -19,6 +17,8 @@ import { MdDragIndicator } from 'react-icons/md';
 
 import { useOrdersStore } from '../Stores/OrdersStore.ts';
 import { useUIStore } from '../Stores/UIStore.ts';
+
+import { WIDGET_DROP_HANDLERS, WIDGETS, type WIDGET_NAMES } from '../Widgets/Widgets.tsx';
 
 
 
@@ -34,7 +34,6 @@ function Dashboard() {
 
     const {
       groupedOrders,
-      setLocation,
     } = useOrdersStore()
 
     const [cur_order, setCur_Order] = useState<string | null>(null);
@@ -94,35 +93,21 @@ function Dashboard() {
             <Header onImportClick={import_data} showFilters={{layout: true, filter: true, date: true}}/>
             <div className="dash-content">
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
-                switch (layout.id) {
-                  case 'orders':
-                    return (
-                      <GridItem key={layout.id} layout={layout}>
-                        <OrdersTable 
-                          scrollTop={scrollTop} 
-                          draggable
-                          isDragging={isDragging} />
-                      </GridItem>
-                    );
-                  case 'courier':
-                    return (
-                      <GridItem key={layout.id} layout={layout}>
-                        <StatsCards id="1" title="Courier Pickups" />
-                      </GridItem>
-                    );
-                  case 'sales':
-                    return (
-                      <GridItem key={layout.id} layout={layout}>
-                        <StatsCards id="2" title="Sales Rep Pickups" />
-                      </GridItem>
-                    );
-                  case 'held':
-                    return (
-                      <GridItem key={layout.id} layout={layout}>
-                        <StatsCards id="3" title="Orders Held" />
-                      </GridItem>
-                    );
+                const Widget = WIDGETS[layout.id as WIDGET_NAMES]
+                // make exception for all orders to pass scrollTop and isDragging as props for the drag overlay
+                if (layout.id === "All Orders") {
+                  return (
+                    <GridItem key={layout.id} layout={layout}>
+                      <Widget id={layout.id} extras={{scrollTop, isDragging}}/>
+                    </GridItem>
+                  )
                 }
+                return (
+                  <GridItem key={layout.id} layout={layout}>
+                    <Widget id={layout.id}/>
+                  </GridItem>
+                )
+                  
               })}
             </div>
           </main>
@@ -132,11 +117,13 @@ function Dashboard() {
     )
 
     function handleDragEnd(event: any) {
-      if (event.over && event.over.id.includes('droppable')) {
-        const droppableId = event.over.id.split('-')[1]; // Get the id part after 'droppable-'
+      if (event.over) {
+        const droppableId = event.over.id
         console.log(cur_order + ' dropped in droppable with id:', droppableId);
-        if (cur_order) {
-          setLocation(cur_order, Number(droppableId));
+        const handler = WIDGET_DROP_HANDLERS[droppableId]
+        if (handler && cur_order) {
+          
+          handler(cur_order)
         }
       }
       setCur_Order(null);

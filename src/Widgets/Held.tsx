@@ -1,18 +1,18 @@
 import React from 'react'
 import './StatsCards.css'
-import { Droppable } from './Droppable'
-import { Draggable } from './Draggable'
+import { Droppable } from '../Dashboard/Droppable'
+import { Draggable } from '../Dashboard/Draggable'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 
-interface StatsCardsProps {
+interface HeldProps {
   id: string
-  title: string
 }
 
-const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
+const Held: React.FC<HeldProps> = ({ id }) => {
 
-  const orders = useVisibleOrders(title) // DEPRECIATED, DOES NOT WORK WITH LOCATION FILTER, NEEDS TO BE REPLACED WITH EXTRA FILTER VERSION
+  const title = "Held Orders"
+  const orders = useVisibleOrders(title, (order) => order.held === true)
   const setSort = useUIStore(s => s.setTableSort) 
 
   return (
@@ -48,4 +48,4 @@ const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
   )
 }
 
-export default StatsCards
+export default Held

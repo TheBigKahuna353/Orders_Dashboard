@@ -2,14 +2,18 @@ type Order = {
   deliveryNo: string
   customer: string
   city: string
-  u: string // comments column
+  comments: string // comments column
   weight: number
   volume: number
   pallets: number
   status: "picking" | "finished"
   groupId: string
-  deliverDate: string,
+  deliverDate: string
   DeliverStatus: string
+
+  pickupType: "delivery" | "pickup" | 'courier'
+  held?: boolean
+  holdReason?: "backorder" | "small_order"
 }
 
 type GroupedOrder = {
@@ -23,6 +27,10 @@ type GroupedOrder = {
   status: "picking" | "finished",
   palletsVariance?: number
   deliverDate: string,
+
+  held?: boolean
+  holdReason?: "backorder" | "small_order"
+  pickupType: "delivery" | "pickup" | 'courier'
 }
 
 type SalesOrderLine = {

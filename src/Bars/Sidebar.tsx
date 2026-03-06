@@ -18,7 +18,7 @@ const Sidebar: React.FC = () => {
       <div className="sidebar-header">
         <div className="logo">
           <div className="logo-icon">📦</div>
-          <span className="logo-text">WarehouseOps</span>
+          <span className="logo-text">Better Ecargo</span>
         </div>
       </div>
       <nav className="sidebar-nav">

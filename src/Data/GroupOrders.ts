@@ -23,8 +23,16 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         status: "finished",
         palletsVariance: 0,
         deliverDate: order.deliverDate,
+        pickupType: order.pickupType,
+        held: order.held,
         })
       }
+
+    if (order.held) {
+        console.log("order is held", order.groupId, order.deliveryNo)
+    } else {
+        console.log(order.held)
+    }
 
     function round(num: number, fractionDigits: number): number {
           return Number(num.toFixed(fractionDigits));
@@ -60,16 +68,15 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
 
 function filterOrders(
     orders: GroupedOrder[],
-    locations: Record<string, number>,
     options: {
         filter?: Filter | null
-        location?: number | null
         dateRange?: [Date | null, Date | null]
         dateMode?: "delivery" | "pick"
+        extraFilter?: (order: GroupedOrder) => boolean
     }
 ): GroupedOrder[] {
 
-    const { filter, location, dateRange, dateMode } = options
+    const { filter, dateRange, dateMode, extraFilter } = options
 
     const start = dateRange?.[0] ? toDateOnlyString(dateRange[0]) : undefined
     const end = dateRange?.[1] ? toDateOnlyString(dateRange[1]) : undefined
@@ -80,10 +87,8 @@ function filterOrders(
         if (filter && !filterOrder(order.city, order.customer, filter))
             return false
 
-        // location filter
-        if (location !== null &&
-            location !== undefined &&
-            locations[order.groupId] !== location)
+        // extra filter
+        if (extraFilter && !extraFilter(order))
             return false
 
         // workload date filter
@@ -109,12 +114,10 @@ function filterOrders(
 }
 
 export function useFilteredOrders(
-    location?: number | null
+    extraFilter?: (order: GroupedOrder) => boolean,
 ) {
 
     const groupedOrders = useOrdersStore(s => s.groupedOrders)
-
-    const locations = useOrdersStore(s => s.locations)
 
     const filter = useUIStore(s => s.deliveryFilter)
 
@@ -123,13 +126,13 @@ export function useFilteredOrders(
     const dateMode = useUIStore(s => s.dateMode)
 
     return useMemo(() =>
-        filterOrders(groupedOrders, locations, {
+        filterOrders(groupedOrders, {
             filter,
-            location,
             dateRange,
-            dateMode
+            dateMode,
+            extraFilter
         }),
-        [groupedOrders, locations, filter, location, dateRange, dateMode]
+        [groupedOrders, filter, dateRange, dateMode, extraFilter]
     )
 }
 
@@ -172,11 +175,11 @@ export function useSortedOrders(
 
 export function useVisibleOrders(
     tableId: string,
-    location?: number | null
+    extraFilter?: (order: GroupedOrder) => boolean
 ) {
 
     const filtered =
-        useFilteredOrders(location)
+        useFilteredOrders(extraFilter)
 
     const sorted =
         useSortedOrders(filtered, tableId)

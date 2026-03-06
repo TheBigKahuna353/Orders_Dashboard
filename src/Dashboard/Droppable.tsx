@@ -9,7 +9,7 @@ interface DroppableProps {
 
 function Droppable(props: DroppableProps) {
   const {isOver, setNodeRef} = useDroppable({
-    id: 'droppable-' + props.id,
+    id: props.id,
   });
   const style: React.CSSProperties = {
     backgroundColor: isOver ? 'lightgray' : undefined,

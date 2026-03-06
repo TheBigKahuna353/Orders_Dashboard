@@ -16,7 +16,10 @@ interface props {
 
 const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDragging }) => {
   
-  const orders = useVisibleOrders("orders-table", fullScreen ? null : 0)
+
+  const filter = (order: GroupedOrder) => !order.held && order.pickupType === "delivery"
+
+  const orders = useVisibleOrders("orders-table", fullScreen ? undefined: filter)
   const setSort = useUIStore(s => s.setTableSort) 
   const tableID = "orders-table";
   const { splitOrder, joinOrders } = useOrdersStore()
@@ -109,6 +112,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
               <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalVolume")}>Volume (m3) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "ordersCount")}># Orders <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "held")}>Held <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "deliverDate")}>Delivery Date <span className="sort-icon">↕️</span></th>
               <th>Action</th>
             </tr>
@@ -159,6 +163,8 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                   <td>{order.totalVolume}</td>
 
                   <td>{order.orders.length}</td>
+
+                  <td>{order.held}</td>
 
                   <td>{order.deliverDate}</td>
 
@@ -266,7 +272,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
 
   if (draggable) {
     return (
-      <Droppable id="0">
+      <Droppable id="orders">
         {content()}
       </Droppable>
     )

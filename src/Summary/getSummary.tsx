@@ -12,6 +12,10 @@ export function useDailySummary(month: number) {
 
     for (const group of groupedOrders) {
 
+        if (group.held) {
+            continue
+        }
+
         const date = toDateOnlyString(getPickDate(group.customer, fromDateOnlyString(group.deliverDate), useCustomerStore.getState().customerMaster))
         if (!date || isNaN(fromDateOnlyString(date).getTime())) {
           console.warn("Invalid date:", group, date)

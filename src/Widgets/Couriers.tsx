@@ -1,18 +1,18 @@
 import React from 'react'
 import './StatsCards.css'
-import { Droppable } from './Droppable'
-import { Draggable } from './Draggable'
+import { Droppable } from '../Dashboard/Droppable'
+import { Draggable } from '../Dashboard/Draggable'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 
-interface StatsCardsProps {
+interface CouriersProps {
   id: string
-  title: string
 }
 
-const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
+const Couriers: React.FC<CouriersProps> = ({ id }) => {
 
-  const orders = useVisibleOrders(title) // DEPRECIATED, DOES NOT WORK WITH LOCATION FILTER, NEEDS TO BE REPLACED WITH EXTRA FILTER VERSION
+  const title = "Couriers"
+  const orders = useVisibleOrders(title, (order) => order.pickupType === "courier")
   const setSort = useUIStore(s => s.setTableSort) 
 
   return (
@@ -48,4 +48,4 @@ const StatsCards: React.FC<StatsCardsProps> = ({ id, title }) => {
   )
 }
 
-export default StatsCards
+export default Couriers

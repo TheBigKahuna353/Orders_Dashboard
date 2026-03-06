@@ -20,7 +20,8 @@ type OrdersState = {
 
     splitOrder: (orderId: string) => void
     joinOrders: (sourceOrderId: string, targetGroupId: string) => void
-
+    holdGroup: (groupId: string, hold: boolean, reason?: "backorder" | "small_order") => void
+    changePickupType: (groupId: string, pickupType: "courier" | "pickup" | "delivery") => void
 
 }
 
@@ -44,7 +45,28 @@ export const useOrdersStore = create<OrdersState>()(
             const map = new Map(existing.map(o => [o.deliveryNo, o]))
 
             for (const order of incoming) {
-            map.set(order.deliveryNo, order)
+                const current = map.get(order.deliveryNo)
+
+                if (!current) {
+                    // new order
+                    map.set(order.deliveryNo, order)
+                    continue
+                }
+
+                // merge imported fields but keep local overrides
+                map.set(order.deliveryNo, {
+                    ...current,
+
+                    // fields controlled by TMS
+                    weight: order.weight,
+                    volume: order.volume,
+                    pallets: order.pallets,
+                    DeliverStatus: order.DeliverStatus,
+                    comments: order.comments,
+
+                    // allow date correction if TMS changed
+                    deliverDate: order.deliverDate,
+                })
             }
             const merged = Array.from(map.values())
             set({
@@ -88,14 +110,35 @@ export const useOrdersStore = create<OrdersState>()(
 
         joinOrders: (sourceOrderId: string, targetGroupId: string) =>
             set((state) => {
-                const sourceOrder = state.orders.find(o => o.deliveryNo === sourceOrderId)
-                if (!sourceOrder) return state
-                sourceOrder.groupId = targetGroupId
+                const orders = state.orders.map(order =>
+                    order.deliveryNo === sourceOrderId
+                        ? { ...order, groupId: targetGroupId }
+                        : order
+                    )
                 console.log("Joining orders", sourceOrderId, "into", targetGroupId)
-                return { orders: state.orders, groupedOrders: groupOrders(state.orders) }
+                return { orders, groupedOrders: groupOrders(orders) }
+            }),
+
+        holdGroup: (groupId: string, held: boolean, reason?: "backorder" | "small_order") =>
+            set((state) => {
+                const orders = state.orders.map(order =>
+                    order.groupId === groupId
+                        ? { ...order, held, holdReason: reason }
+                        : order
+                )
+                return { orders, groupedOrders: groupOrders(orders) }
+            }),
+
+        changePickupType: (groupId: string, pickupType: "courier" | "pickup" | "delivery") =>
+            set((state) => {
+                const orders = state.orders.map(order =>
+                    order.groupId === groupId
+                        ? { ...order, pickupType }
+                        : order
+                )
+                return { orders, groupedOrders: groupOrders(orders) }
             }),
         }),
-
         {
             name: 'orders-storage',
             partialize: (state) => ({
