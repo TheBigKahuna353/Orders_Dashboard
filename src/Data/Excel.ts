@@ -1,6 +1,7 @@
-import * as XLSX from "xlsx"
+import * as XLSX from 'sheetjs-style'
 import { useCycleCountStore } from "../Stores/CycleCountStore"
 import { toDateOnlyString } from "./Dates"
+
 
 
 async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[]> {
@@ -90,17 +91,68 @@ export async function onExcelUpload(file: File, date: Date) {
 
 
 
-/**
- * Exports a table DOM node to an Excel file.
- * @param tableId The id of the table element in the DOM
- * @param filename The filename for the downloaded Excel file
- */
-export function exportTableToExcel(tableId: string, filename = 'table.xlsx') {
-  const table = document.getElementById(tableId);
-  if (!table) {
-    console.error('Table not found:', tableId);
-    return;
+  /**
+   * Exports a table DOM node to an Excel file.
+   * @param tableId The id of the table element in the DOM
+   * @param filename The filename for the downloaded Excel file
+   */
+export async function exportTableToExcel(tableId: string, filename = 'table.xlsx') {
+    const table = document.getElementById(tableId);
+    if (!table) {
+      console.error('Table not found:', tableId);
+      return;
+    }
+    const dataText = table.innerText;
+    const rows = dataText.split('\n');
+    const data = rows.map(row => row.split('\t'));
+
+    // Remove first element in every row from row 2 onwards
+    for (let i = 0; i < data.length; i++) {
+      data[i].splice(0, 1);
+      // Remove second element in every 4th row
+      if ((i) % 4 === 1) {
+        data[i].splice(0, 1);
+      }
+    }
+    data[0].splice(0, 1); // also remove first element of header row
+
+  // Fetch the template file as ArrayBuffer
+  try {
+    const response = await fetch('/Orders_Dashboard/src/assets/template.xlsx');
+    const arrayBuffer = await response.arrayBuffer();
+    const template = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
+    const worksheet = template.Sheets[template.SheetNames[0]];
+
+    // write dates from row 1
+    const add: Record<string, number> = { "mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4 };
+    const dayKey = (data[0][0]?.toLowerCase().slice(0, 3));
+    let i = 4 + (add[dayKey] ?? 0);
+    for (let col = 0; col < data[0].length - 1; col++) {
+      if (data[0][col].slice(0, 4) === "Week") {
+        i += 2
+        continue;
+      }
+      const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: 1 });
+      const cellAddress2 = XLSX.utils.encode_cell({ c: col+i, r: 2 });
+      worksheet[cellAddress] = { t: 's', v: data[0][col].split(',')[1].trim() };
+      worksheet[cellAddress2] = { t: 's', v: data[0][col].split(',')[0].trim() };
+
+      // now write the data for this column, starting from row 4
+      let j = 0;
+      for (let row = 1; row < data.length; row++) {
+        
+        if (row % 4 === 1) j++ // increment j every 4 rows, starting from the second row
+
+        const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: row+2+j });
+        const value = data[row][col].replace(',', ''); // remove commas from numbers
+        worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
+      }
+    }
+    i = 2 + (add[dayKey] ?? 0);
+    //console.log(data)
+    // You may want to trigger a download here
+    XLSX.writeFile(template, filename);
+  } catch (err) {
+    console.error('Error fetching or processing template.xlsx:', err);
   }
-  const wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
-  XLSX.writeFile(wb, filename);
 }

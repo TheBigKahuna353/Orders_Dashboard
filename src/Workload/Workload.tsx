@@ -25,8 +25,11 @@ function Workload() {
         importSalesData(file)
     }
 
-    const workload = useWorkload()
-    const nextPickDay = workload[0]
+    const { workload, salesordersByDay } = useWorkload();
+    const nextPickDay = workload[1];
+
+    console.log("Workload data:", workload);
+    console.log("Sales orders by day:", salesordersByDay);
 
     return (
         <div className="workload-page">
@@ -35,11 +38,14 @@ function Workload() {
                 <div className="workload-main">
                     {nextPickDay && ( <NextDayCard day={nextPickDay} />)}
                     <NextDayChart day={nextPickDay} />
-                    <WorkloadTable workload={workload} />
+                    <WorkloadTable
+                        workload={workload}
+                        salesordersByDay={salesordersByDay}
+                    />
                 </div>
             </div>
         </div>
-  )
+    );
 }
 
 export default Workload;

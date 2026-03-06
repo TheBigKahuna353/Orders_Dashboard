@@ -44,6 +44,16 @@ type SalesOrderLine = {
   unit: string              // CSE, EA, BUN
 }
 
+type Salesorder = {
+  salesOrderNo: string
+  customer: string
+  city: string
+  deliverDate: string
+  totalPallets: number
+  totalVoicePicks: number
+  salesOrderLines: SalesOrderLine[]
+}
+
 type ProductMaster = {
   material: string
 
