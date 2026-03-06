@@ -2,9 +2,13 @@ import Papa from "papaparse"
 import { useOrdersStore } from "../Stores/OrdersStore"
 import { toDateOnlyString } from "./Dates"
 import { useCustomerStore } from "../Stores/CustomerStore"
+import { parseExcelToRows } from "./Excel"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseCsvFile(file: File, format: "formatA" | "formatB"): Promise<any[]> {
+function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Promise<any[]> {
+  if (format === "formatC") {
+    return parseExcelToRows(file)
+  }
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -102,10 +106,12 @@ function mapFormatBToOrders(rows: Record<string, string>[], locations: Record<st
   .filter((order): order is Order => order !== null) // filter out nulls from skipped rows
 }
 
-async function detectFormat(file: File): Promise<"formatA" | "formatB"> {
+async function detectFormat(file: File): Promise<"formatA" | "formatB" | "formatC"> {
   // if the first cell is Consignment Extract 																																
   // then it's the format with Customer Name, otherwise it's the one with Customer Name
-
+  if (file.type === "text/xlsx" || file.name.endsWith(".xlsx")) {
+    return "formatC"
+  }
   if (await file.text().then(text => text.startsWith("Consignment Extract"))) {
     return "formatB"
   } else {
@@ -126,7 +132,7 @@ export async function onCSVUpload(
 
     if (format === "formatA") {
       parsedOrders = mapFormatAToOrders(rows, locations, setLocation)
-    } else if (format === "formatB") {
+    } else if (format === "formatB" || format === "formatC") {
       parsedOrders = mapFormatBToOrders(rows, locations, setLocation)
     } else {
       throw new Error("Unknown CSV format")

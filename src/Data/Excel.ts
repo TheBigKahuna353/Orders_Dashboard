@@ -86,7 +86,29 @@ export async function onExcelUpload(file: File, date: Date) {
   }
 }
 
+export async function parseExcelToRows(file: File): Promise<string[][]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
 
+    reader.onload = (e) => {
+      try {
+        const data = e.target?.result
+        const workbook = XLSX.read(data, { type: "array" })
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+        console.log("Worksheet Data:", worksheet)
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          range: 5 // skip first 5 rows which are headers
+        })
+        resolve(jsonData as string[][])
+      } catch (err) {
+        reject(err)
+      }
+    }
+
+    reader.onerror = reject 
+    reader.readAsArrayBuffer(file)
+  })
+}
 
 
 
