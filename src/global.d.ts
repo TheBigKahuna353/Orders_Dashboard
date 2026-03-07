@@ -8,13 +8,12 @@ type Order = {
   groupId: string
   deliverDate: string
 
-  status: 'picking' | 'ready' | 'dispatched' | 'delivered'
+  status: 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered'
   DeliverStatus?: string
   comments: string // comments column
   shipmentNo?: string
 
   pickupType: "delivery" | "pickup" | 'courier'
-  held?: boolean
   holdReason?: "backorder" | "small_order"
 }
 
@@ -26,11 +25,10 @@ type GroupedOrder = {
   totalPallets: number
   totalWeight: number
   totalVolume: number
-  status: 'picking' | 'ready' | 'dispatched' | 'delivered'
+  status: 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered'
   palletsVariance?: number
   deliverDate: string,
 
-  held?: boolean
   holdReason?: "backorder" | "small_order"
   pickupType: "delivery" | "pickup" | 'courier'
 }

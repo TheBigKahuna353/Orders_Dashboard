@@ -21,3 +21,21 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
 
   return newDate;
 }
+
+
+export function deriveStatus(comments: string, shipmentNo: string, DeliverStatus: string, held?: boolean): 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered' {
+
+  if (DeliverStatus === "DELIVERED")
+    return "delivered"
+
+  if (DeliverStatus === "DISPATCHED" || shipmentNo)
+    return "dispatched"
+
+  if (comments)
+    return "ready"
+
+  if (held)
+    return "held"
+
+  return "picking"
+}

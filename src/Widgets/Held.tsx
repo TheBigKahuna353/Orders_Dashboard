@@ -12,7 +12,7 @@ interface HeldProps {
 const Held: React.FC<HeldProps> = ({ id }) => {
 
   const title = "Held Orders"
-  const orders = useVisibleOrders(title, (order) => order.held === true)
+  const orders = useVisibleOrders(title, (order) => order.status === 'held') // only show held orders
   const setSort = useUIStore(s => s.setTableSort) 
 
   return (

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import groupOrders from '../Data/GroupOrders'
 import { useCustomerStore } from './CustomerStore'
 import getProductMasterData from '../Data/productMasterData'
+import { deriveStatus } from '../Data/utils'
 
 type OrdersState = {
     orders: Order[]
@@ -106,9 +107,11 @@ export const useOrdersStore = create<OrdersState>()(
 
         holdGroup: (groupId: string, held: boolean, reason?: "backorder" | "small_order") =>
             set((state) => {
-                const orders = state.orders.map(order =>
+                const orders = state.orders.map(order => 
                     order.groupId === groupId
-                        ? { ...order, held, holdReason: reason }
+                        ? { ...order, 
+                            status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", held), 
+                            holdReason: reason }
                         : order
                 )
                 return { orders, groupedOrders: groupOrders(orders) }

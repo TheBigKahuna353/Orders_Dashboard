@@ -16,7 +16,7 @@ interface props {
 const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
   
 
-  const filter = (order: GroupedOrder) => !order.held && order.pickupType === "delivery"
+  const filter = (order: GroupedOrder) => order.status !== 'held' && order.pickupType === "delivery"
 
   const orders = useVisibleOrders("orders-table", widget ? filter : undefined) // if widget, only show delivery orders that aren't held
   const setSort = useUIStore(s => s.setTableSort) 
@@ -182,7 +182,6 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
                   <td>{order.status}</td>
-                  <td>{order.held ? "Yes" : "No"}</td>
                   <td>{order.deliverDate}</td>
                   <td>
                     <button onClick={(e) => handleDropdown(e, index)}>

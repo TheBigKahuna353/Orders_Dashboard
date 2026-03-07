@@ -3,6 +3,7 @@ import { useOrdersStore } from "../Stores/OrdersStore"
 import { toDateOnlyString } from "./Dates"
 import { useCustomerStore } from "../Stores/CustomerStore"
 import { parseExcelToRows } from "./Excel"
+import { deriveStatus } from "./utils"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Promise<any[]> {
@@ -26,19 +27,6 @@ function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Pr
   })
 }
 
-function deriveStatus(comments: string, shipmentNo: string, DeliverStatus: string): 'picking' | 'ready' | 'dispatched' | 'delivered' {
-
-  if (DeliverStatus === "DELIVERED")
-    return "delivered"
-
-  if (DeliverStatus === "DISPATCHED" || shipmentNo)
-    return "dispatched"
-
-  if (comments)
-    return "ready"
-
-  return "picking"
-}
 
 function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
   return rows.map((row) => {
@@ -61,7 +49,7 @@ function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
       weight: Number(row["ItemWeight"]) || 0,
       volume: Number(row["ItemVolume"]) || 0,
       pallets: Number(row["ItemQty2"]) || 0,
-      status: deriveStatus(comments, row["Manifest"]?.trim() || "", row["DeliverStatus"]?.trim() || ""),
+      status: deriveStatus(comments, row["Manifest"]?.trim() || "", row["DeliverStatus"]?.trim() || "",),
       groupId,
       deliverDate: toDateOnlyString(new Date(deliverDate)),
       DeliverStatus: row["DeliverStatus"]?.trim() || "",

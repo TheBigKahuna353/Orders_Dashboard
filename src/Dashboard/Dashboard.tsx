@@ -25,13 +25,6 @@ import { WIDGET_DROP_HANDLERS, WIDGETS, type WIDGET_NAMES } from '../Widgets/Wid
 function Dashboard() {
 
 
-    // this array will hold which droppables the orders are in
-    // 0 = left column, All orders
-    // 1 = right column, orders not being sent today
-    // 2 = right column, sales rep pickups
-    // 3 = right column, couriers
-
-
     const {
       groupedOrders,
     } = useOrdersStore()
@@ -95,7 +88,7 @@ function Dashboard() {
               {DASHBOARD_LAYOUTS[layout].map((layout: any) => {
                 const Widget = WIDGETS[layout.id as WIDGET_NAMES]
                 // make exception for all orders to pass scrollTop and isDragging as props for the drag overlay
-                if (layout.id === "All Orders") {
+                if (layout.id === "orders") {
                   return (
                     <GridItem key={layout.id} layout={layout}>
                       <Widget id={layout.id} extras={{scrollTop, isDragging}}/>
