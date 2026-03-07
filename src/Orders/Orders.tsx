@@ -17,7 +17,7 @@ export default function Orders() {
             <div className="main-content">
                 <Header onImportClick={import_data} showFilters={{layout: false, filter: true, date: true}}/>
                 <div className="content">
-                    <OrdersTable fullScreen={true}/>
+                    <OrdersTable widget={false}/>
                 </div>
             </div>
         </div>

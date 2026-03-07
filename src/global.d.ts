@@ -2,14 +2,16 @@ type Order = {
   deliveryNo: string
   customer: string
   city: string
-  comments: string // comments column
   weight: number
   volume: number
   pallets: number
-  status: "picking" | "finished"
   groupId: string
   deliverDate: string
-  DeliverStatus: string
+
+  status: 'picking' | 'ready' | 'dispatched' | 'delivered'
+  DeliverStatus?: string
+  comments: string // comments column
+  shipmentNo?: string
 
   pickupType: "delivery" | "pickup" | 'courier'
   held?: boolean

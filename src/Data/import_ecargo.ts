@@ -26,7 +26,21 @@ function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Pr
   })
 }
 
-function mapFormatAToOrders(rows: Record<string, string>[], locations: Record<string, number>, setLocation: (groupId: string, value: number) => void): Order[] {
+function deriveStatus(comments: string, shipmentNo: string, DeliverStatus: string): 'picking' | 'ready' | 'dispatched' | 'delivered' {
+
+  if (DeliverStatus === "DELIVERED")
+    return "delivered"
+
+  if (DeliverStatus === "DISPATCHED" || shipmentNo)
+    return "dispatched"
+
+  if (comments)
+    return "ready"
+
+  return "picking"
+}
+
+function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
   return rows.map((row) => {
     let customer = row["DeliverToName"]?.trim()
     const city = row["DeliverToAddressCity"]?.trim()
@@ -39,10 +53,6 @@ function mapFormatAToOrders(rows: Record<string, string>[], locations: Record<st
 
     const groupId = `${customer}-${deliverDate}`
 
-    if (locations[groupId] === undefined) {
-      setLocation(groupId, 0)
-    }
-
     return {
       deliveryNo: row["DeliveryNo"],
       customer,
@@ -51,10 +61,11 @@ function mapFormatAToOrders(rows: Record<string, string>[], locations: Record<st
       weight: Number(row["ItemWeight"]) || 0,
       volume: Number(row["ItemVolume"]) || 0,
       pallets: Number(row["ItemQty2"]) || 0,
-      status: comments ? "finished" : "picking",
+      status: deriveStatus(comments, row["Manifest"]?.trim() || "", row["DeliverStatus"]?.trim() || ""),
       groupId,
       deliverDate: toDateOnlyString(new Date(deliverDate)),
       DeliverStatus: row["DeliverStatus"]?.trim() || "",
+      shipmentNo: row["Manifest"]?.trim() || "",
       pickupType: "delivery",
     }
   })
@@ -66,44 +77,41 @@ function parseDate(dateStr: string): string {
   return toDateOnlyString(new Date(year, month - 1, day))
 }
 
-function mapFormatBToOrders(rows: Record<string, string>[], locations: Record<string, number>, setLocation: (groupId: string, value: number) => void): Order[] {
+function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
   return rows.map((row) => {
-    let customer = row["Deliver To"]?.trim()
-    const city = row["City"]?.trim()
-    const comments = row["Comments"]?.trim() || ""
-    const deliverDate = row["Planned Deliver Date"]?.split(" ")[0] || ""
-    
-    if (!customer || !city || !deliverDate) {
-      console.warn("Skipping row with missing required fields:", row)
-      return null
-    }
+      let customer = row["Deliver To"]?.trim()
+      const city = row["City"]?.trim()
+      const comments = row["Comments"]?.trim() || ""
+      const deliverDate = row["Planned Deliver Date"]?.split(" ")[0] || ""
+      
+      if (!customer || !city || !deliverDate) {
+        console.warn("Skipping row with missing required fields:", row)
+        return {} as Order // return empty object for rows with missing required fields, will filter out later
+      }
 
-    if (customer.includes("Foodstuffs")) {
-      customer = "Foodstuffs " + city
-    }
+      if (customer.includes("Foodstuffs")) {
+        customer = "Foodstuffs " + city
+      }
 
-    const groupId = `${customer}-${deliverDate}`
+      const groupId = `${customer}-${deliverDate}`
 
-    if (locations[groupId] === undefined) {
-      setLocation(groupId, 0)
-    }
-
-    return {
-      deliveryNo: row["Consignment "],
-      customer,
-      city,
-      comments,
-      weight: Number(row["Weight"]) || 0,
-      volume: Number(row["Volume"]) || 0,
-      pallets: Number(row["Qty 4"]) || 0,
-      status: comments ? "finished" : "picking",
-      groupId,
-      deliverDate: parseDate(deliverDate),
-      DeliverStatus: row["Status"]?.trim() || "",
-      pickupType: "delivery",
-    }
-  })
-  .filter((order): order is Order => order !== null) // filter out nulls from skipped rows
+      return {
+        deliveryNo: row["Consignment "],
+        customer,
+        city,
+        comments,
+        weight: Number(row["Weight"]) || 0,
+        volume: Number(row["Volume"]) || 0,
+        pallets: Number(row["Qty 4"]) || 0,
+        status: deriveStatus(comments, row["Manifest"]?.trim() || "", row["Status"]?.trim() || ""),
+        groupId,
+        deliverDate: parseDate(deliverDate),
+        shipmentNo: row["Manifest"]?.trim() || "",
+        DeliverStatus: row["Status"]?.trim() || "",
+        pickupType: "delivery",
+      }
+    })
+    .filter((order): order is Order => !!order && Object.keys(order).length > 0) // filter out nulls and empty objects from skipped rows
 }
 
 async function detectFormat(file: File): Promise<"formatA" | "formatB" | "formatC"> {
@@ -124,16 +132,16 @@ export async function onCSVUpload(
   update: boolean = false
 ) {
   console.log("Importing file:", file.name)
-  const { setOrders, setLocation, locations, upsertOrders } = useOrdersStore.getState()
+  const { setOrders, upsertOrders } = useOrdersStore.getState()
   try {
     const format = await detectFormat(file)
     const rows = await parseCsvFile(file, format)
     let parsedOrders: Order[] = []
 
     if (format === "formatA") {
-      parsedOrders = mapFormatAToOrders(rows, locations, setLocation)
+      parsedOrders = mapFormatAToOrders(rows)
     } else if (format === "formatB" || format === "formatC") {
-      parsedOrders = mapFormatBToOrders(rows, locations, setLocation)
+      parsedOrders = mapFormatBToOrders(rows)
     } else {
       throw new Error("Unknown CSV format")
     }

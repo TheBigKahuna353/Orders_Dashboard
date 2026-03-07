@@ -9,17 +9,16 @@ import { useOrdersStore } from '../Stores/OrdersStore'
 
 interface props {
   scrollTop?: number,
-  draggable?: boolean
-  fullScreen?: boolean
+  widget?: boolean // when true, acts like draggable and not fullscreen
   isDragging?: boolean
 }
 
-const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDragging }) => {
+const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
   
 
   const filter = (order: GroupedOrder) => !order.held && order.pickupType === "delivery"
 
-  const orders = useVisibleOrders("orders-table", fullScreen ? undefined: filter)
+  const orders = useVisibleOrders("orders-table", widget ? filter : undefined) // if widget, only show delivery orders that aren't held
   const setSort = useUIStore(s => s.setTableSort) 
   const tableID = "orders-table";
   const { splitOrder, joinOrders } = useOrdersStore()
@@ -95,7 +94,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
 
   const content = () => {
     return <div 
-        style={{borderRadius: fullScreen ? '0' : '8px'}} 
+        style={{borderRadius: !widget ? '8px' : '0'}} 
         className={`table-container`}
         onScroll={(e) => {
           if (isDragging) {
@@ -104,15 +103,17 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
       }}>
         <table className="orders-table">
           <thead>
-            <tr style={fullScreen ? stickyStyle : {}}>
-              {draggable && <th style={{padding:"0", width: "16px"}}></th>}
+            <tr style={widget ? {} : stickyStyle}>
+              {widget && <th style={{padding:"0", width: "16px"}}></th>}
               <th style={{padding:"0", width: "32px"}}></th>
               <th onClick={() => setSort(tableID, "customer")}>Customer Name <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalPallets")}>Total Pallets <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalVolume")}>Volume (m3) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "ordersCount")}># Orders <span className="sort-icon">↕️</span></th>
-              <th onClick={() => setSort(tableID, "held")}>Held <span className="sort-icon">↕️</span></th>
+              {!widget && (
+                <th onClick={() => setSort(tableID, "held")}>Held <span className="sort-icon">↕️</span></th>
+              )}
               <th onClick={() => setSort(tableID, "deliverDate")}>Delivery Date <span className="sort-icon">↕️</span></th>
               <th>Action</th>
             </tr>
@@ -130,8 +131,8 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
 
               const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.orders[0].customer && mergeSourceOrder.groupId !== order.groupId
 
-              const mainRow = draggable ? (
 
+              const mainRow = widget ? (
                 <Draggable
                   key={order.groupId}
                   id={order.groupId}
@@ -143,7 +144,6 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                     }
                   }}
                 >
-
                   {/* expand button */}
                   <td
                     onClick={() => toggleGroup(order.groupId)}
@@ -151,69 +151,43 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
                   >
                     {isOpen ? <MdExpandMore /> : <MdChevronRight />}
                   </td>
-
                   <td className="customer-name">
                     {order.customer}
                   </td>
-
                   <td>{order.totalPallets}</td>
-
                   <td>{order.totalWeight}</td>
-
                   <td>{order.totalVolume}</td>
-
                   <td>{order.orders.length}</td>
-
-                  <td>{order.held}</td>
-
                   <td>{order.deliverDate}</td>
-
                   <td style={{position:'relative'}}>
-
                     <button
                       className="order-action-btn"
                       onClick={(e) => handleDropdown(e, index)}
                     >
                       More
                     </button>
-
                     {dropdownMenu}
-
                   </td>
-
                 </Draggable>
-
               ) : (
-
                 <tr key={order.groupId}>
-
                   <td onClick={() => toggleGroup(order.groupId)}>
                     {isOpen ? <MdExpandMore /> : <MdChevronRight />}
                   </td>
-
                   <td>{order.customer}</td>
-
                   <td>{order.totalPallets}</td>
-
                   <td>{order.totalWeight}</td>
-
                   <td>{order.totalVolume}</td>
-
                   <td>{order.orders.length}</td>
-
+                  <td>{order.held ? "Yes" : "No"}</td>
                   <td>{order.deliverDate}</td>
-
                   <td>
                     <button onClick={(e) => handleDropdown(e, index)}>
                       More
                     </button>
-
                     {dropdownMenu}
-
                   </td>
-
                 </tr>
-
               )
 
               return (
@@ -225,7 +199,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
 
                     <tr key={o.deliveryNo} className="expand-detail-row">
                       <td  style={{ padding: 0}}/>
-                      {draggable && <td  style={{ padding: 0 }}/>}
+                      {widget && <td  style={{ padding: 0 }}/>} 
 
                       <td colSpan={7} style={{ padding: 0 }}>
                         <div className={
@@ -270,7 +244,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, draggable, fullScreen, isDrag
       </div>
   }
 
-  if (draggable) {
+  if (widget) {
     return (
       <Droppable id="orders">
         {content()}

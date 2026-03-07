@@ -45,20 +45,9 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
     group.totalWeight = round(group.totalWeight + order.weight, 2)
     group.totalVolume = round(group.totalVolume + order.volume, 2)
 
-    // Some orders are small enough to be added to existing pallets
-    // but they still say 1 pallet. To reflect this, we calculate the varience
-    // which is the range the pallets could be in.
-    // this is calculated as num of orders that have 1 pallet - 1 if all orders have 1 pallet
-    if (group.orders.length > 1) {
-        group.palletsVariance! = 0;
-        for (const o of group.orders) {
-            if (o.pallets === 1 && o.status !== "finished") {
-                group.palletsVariance! += 1;
-            }
-        }
-    }
+    
 
-    if (order.status !== "finished") {
+    if (order.status === "picking") {
         group.status = "picking"
       }
   }

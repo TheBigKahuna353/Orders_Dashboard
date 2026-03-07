@@ -9,7 +9,7 @@ export const DASHBOARD_LAYOUTS: WidgetLayout[][] = [[
 ],[
     { id: 'orders', col: 1, row: 1, colSpan: 3, rowSpan: 2 },
     { id: 'courier', col: 1, row: 3, colSpan: 1, rowSpan: 1 },
-    { id: 'sales', col: 2, row: 3, colSpan: 1, rowSpan: 1 },
+    { id: 'not-picked', col: 2, row: 3, colSpan: 1, rowSpan: 1 },
     { id: 'held', col: 3, row: 3, colSpan: 1, rowSpan: 1 },
 ]];
 
