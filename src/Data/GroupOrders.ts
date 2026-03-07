@@ -20,7 +20,7 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         totalPallets: 0,
         totalWeight: 0,
         totalVolume: 0,
-        status: "finished",
+        status: order.status,
         palletsVariance: 0,
         deliverDate: order.deliverDate,
         pickupType: order.pickupType,

@@ -111,6 +111,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
               <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalVolume")}>Volume (m3) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "ordersCount")}># Orders <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "status")}>Status <span className="sort-icon">↕️</span></th>
               {!widget && (
                 <th onClick={() => setSort(tableID, "held")}>Held <span className="sort-icon">↕️</span></th>
               )}
@@ -158,6 +159,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalWeight}</td>
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
+                  <td>{order.status}</td>
                   <td>{order.deliverDate}</td>
                   <td style={{position:'relative'}}>
                     <button
@@ -179,6 +181,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalWeight}</td>
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
+                  <td>{order.status}</td>
                   <td>{order.held ? "Yes" : "No"}</td>
                   <td>{order.deliverDate}</td>
                   <td>

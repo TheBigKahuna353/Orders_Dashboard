@@ -26,7 +26,7 @@ type GroupedOrder = {
   totalPallets: number
   totalWeight: number
   totalVolume: number
-  status: "picking" | "finished",
+  status: 'picking' | 'ready' | 'dispatched' | 'delivered'
   palletsVariance?: number
   deliverDate: string,
 
