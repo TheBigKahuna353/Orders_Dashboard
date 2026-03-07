@@ -1,8 +1,41 @@
-import * as XLSX from 'sheetjs-style'
+import * as XLSX from 'xlsx-js-style'
 import { useCycleCountStore } from "../Stores/CycleCountStore"
 import { toDateOnlyString } from "./Dates"
 
+const SUMMARY_RANGES = [
+  "E5:I8",
+  "E10:I13",
+  "E15:I18",
+  "M5:Q8",
+  "M10:Q13",
+  "M15:Q18",
+  "U5:Y8",
+  "U10:Y13",
+  "U15:Y18",
+  "AC5:AG8",
+  "AC10:AG13",
+  "AC15:AG18",
+  "AK5:AO8",
+]
 
+function addOuterBorder(ws: XLSX.WorkSheet, range: string) {
+  const r = XLSX.utils.decode_range(range)
+
+  for (let row = r.s.r; row <= r.e.r; row++) {
+    for (let col = r.s.c; col <= r.e.c; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: row, c: col })
+      if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" }
+
+      ws[cellRef].s = ws[cellRef].s || {}
+      ws[cellRef].s.border = ws[cellRef].s.border || {}
+
+      if (row === r.s.r) ws[cellRef].s.border.top = { style: "thin" }
+      if (row === r.e.r) ws[cellRef].s.border.bottom = { style: "thin" }
+      if (col === r.s.c) ws[cellRef].s.border.left = { style: "thin" }
+      if (col === r.e.c) ws[cellRef].s.border.right = { style: "thin" }
+    }
+  }
+}
 
 async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[]> {
   return new Promise((resolve, reject) => {
@@ -170,7 +203,9 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
         worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
       }
     }
-    i = 2 + (add[dayKey] ?? 0);
+    
+    SUMMARY_RANGES.forEach(r => addOuterBorder(worksheet, r))
+
     //console.log(data)
     // You may want to trigger a download here
     XLSX.writeFile(template, filename);
