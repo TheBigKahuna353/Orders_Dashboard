@@ -173,7 +173,7 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
 
   // Fetch the template file as ArrayBuffer from the public folder
   try {
-    const response = await fetch('/Template.xlsx');
+    const response = await fetch('/Orders_Dashboard/Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
     const template = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
     const worksheet = template.Sheets[template.SheetNames[0]];
