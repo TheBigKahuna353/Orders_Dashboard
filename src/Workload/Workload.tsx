@@ -19,14 +19,27 @@ const NextDayCard = ({ day }: { day: WorkloadDay }) => {
     )
 }
 
+const BackOrdersCard = ({ backOrders }: { backOrders: { voiceqty: number; pallets: number }[] }) => {
+    return (
+        <div className="next-day-card">
+            <h2>Back Orders</h2>
+            <div className="next-day-stats">
+                <div>Full Pallets: {backOrders.reduce((sum, order) => sum + order.pallets, 0)}</div>
+                <div>Voice Picks: {backOrders.reduce((sum, order) => sum + order.voiceqty, 0)}</div>
+            </div>
+        </div>
+    )
+}
+
 function Workload() {
 
     const handleSalesImport = async (file: File) => {
         importSalesData(file)
     }
 
-    const { workload, salesordersByDay } = useWorkload();
+    const { workload, salesordersByDay, backOrders } = useWorkload();
     const nextPickDay = workload[1];
+    console.log(backOrders)
 
     return (
         <div className="workload-page">
@@ -34,6 +47,7 @@ function Workload() {
                 <Header onImportClick={handleSalesImport} showFilters={{layout: false, filter: false, date: true, filetype: '.txt'}}/>
                 <div className="workload-main">
                     {nextPickDay && ( <NextDayCard day={nextPickDay} />)}
+                    <BackOrdersCard backOrders={backOrders} />
                     <NextDayChart day={nextPickDay} />
                     <WorkloadTable
                         workload={workload}

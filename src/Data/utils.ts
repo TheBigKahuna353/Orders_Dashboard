@@ -39,3 +39,14 @@ export function deriveStatus(comments: string, shipmentNo: string, DeliverStatus
 
   return "picking"
 }
+
+export function Capitalize(str:string): string {
+  if (!str) return ""; // Handle empty or null strings safely
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+export function AcceptsBackorders(customer: string): boolean {
+  // All chemist warehouses, Bargain Chemist, Foodstuffs and Woolworths dont accept backorders, so we can exclude them
+  const keywords = ["Chemist", "CHEMIST", "CW", "Bargain", "BARGAIN", "BC", "foodstuffs", "Woolworths", "Trents"]
+  return !keywords.some(keyword => customer.includes(keyword))
+}

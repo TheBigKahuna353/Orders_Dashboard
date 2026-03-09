@@ -4,6 +4,9 @@ import { calculatePickSplit } from "../Data/SalesData"
 import { useMemo } from "react"
 import { useCustomerStore } from "../Stores/CustomerStore"
 import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
+import { AcceptsBackorders } from "../Data/utils"
+
+
 
 function buildSalesOrders(
   lines: SalesOrderLine[],
@@ -27,6 +30,9 @@ function buildSalesOrders(
         salesOrderLines: []
       }
     }
+    if (ordersMap[line.salesOrderNo].deliverDate > line.deliveryDate) {
+      ordersMap[line.salesOrderNo].deliverDate = line.deliveryDate
+    }
 
     const split = calculatePickSplit(line, master)
     ordersMap[line.salesOrderNo].totalPallets += split.fullPallets
@@ -37,8 +43,25 @@ function buildSalesOrders(
   return Object.values(ordersMap)
 }
     
-    
+function buildBackOrders(
+  lines: SalesOrderLine[],
+  masterMap: Record<string, ProductMaster>,
+) : {voiceqty: number, pallets: number}[] {
+  const backOrders = lines.filter(
+    line => line.linetype === 'backorder' && 
+    line.confirmedQty > 0 && 
+    AcceptsBackorders(line.customer))
+  .map(line => {
+    const master = masterMap[line.material]
+    const split = calculatePickSplit(line, master)
+    return {
+      voiceqty: split.voicePicks,
+      pallets: split.fullPallets
+    };
+  });
 
+  return backOrders;
+}
 
 function buildWorkload(
   lines: SalesOrderLine[],
@@ -47,6 +70,8 @@ function buildWorkload(
 ): WorkloadDay[] {
 
   const map = new Map<string, WorkloadDay>()
+  const today = new Date()
+  today.setHours(0,0,0,0)
 
   for (const line of lines) {
 
@@ -59,8 +84,6 @@ function buildWorkload(
         fromDateOnlyString(line.deliveryDate),
         customerMaster
     )
-    const today = new Date()
-    today.setHours(0,0,0,0)
 
     if (pickDate < today) continue
 
@@ -115,6 +138,8 @@ export function useWorkload() {
       salesordersByDay[dayKey].push(order);
     }
 
-    return { workload, salesordersByDay };
+    const backOrders = buildBackOrders(salesOrderLines, productMaster);
+
+    return { workload, salesordersByDay, backOrders };
   }, [salesOrderLines, productMaster, customerMaster]);
 }

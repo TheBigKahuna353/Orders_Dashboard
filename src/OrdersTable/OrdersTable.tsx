@@ -6,6 +6,7 @@ import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 import { MdChevronRight, MdExpandMore } from 'react-icons/md'
 import { useOrdersStore } from '../Stores/OrdersStore'
+import { Capitalize } from '../Data/utils'
 
 interface props {
   scrollTop?: number,
@@ -156,7 +157,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalWeight}</td>
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
-                  <td>{order.status}</td>
+                  <td>{Capitalize(order.status)}</td>
                   <td>{order.deliverDate}</td>
                   <td style={{position:'relative'}}>
                     <button

@@ -33,7 +33,6 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     .split('\t')
 
   const result: SalesOrderLine[] = []
-  console.log("Headers found:", headers)
 
   for (let i = headerIndex + 1; i < lines.length; i++) {
 
@@ -41,7 +40,6 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     if (!row) continue
 
     const cols = row.split('\t')
-    console.log("Parsing row", i, cols)
 
     const get = (name: string) =>
       cols[headers.indexOf(name)] ?? ''
@@ -52,7 +50,6 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     const shippingPoint = get("ShPt")
 
     if (shippingPoint !== "4014") {
-      console.warn(`Skipping order ${document} with shipping point ${shippingPoint}`)
       continue
     }
 
@@ -61,6 +58,8 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
 
     const deliveryDateRaw = get("Dlv.Date")
     const confirmedQty = parseNumber(get("ConfirmQty"))
+    const sl = parseNumber(get("SLNo"))
+    console.log(get('Mat.Av.Dt.'))
 
     result.push({
       salesOrderNo: document,
@@ -69,8 +68,8 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
       material,
       description: get("Description"),
 
-      SL: parseNumber(get("SLNo")),
-      linetype: confirmedQty > 0 ? "confirmed" : "backorder",
+      SL: sl,
+      linetype: sl === 1 ? "confirmed" : "backorder",
 
       orderQty: parseNumber(get("Order qty")),
       confirmedQty: confirmedQty,
@@ -98,8 +97,9 @@ export const importSalesData = async (file: File) => {
 
 export function calculatePickSplit(
   line: SalesOrderLine,
-  master?: ProductMaster
+  master?: ProductMaster,
 ) {
+
 
   const qty = line.confirmedQty
   const perPallet = master?.casesPerPallet
