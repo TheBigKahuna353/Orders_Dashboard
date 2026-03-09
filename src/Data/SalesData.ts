@@ -49,11 +49,18 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
     const document = get("Document")
     const customer = get("Name 1")
     const material = get("Material")
+    const shippingPoint = get("ShPt")
+
+    if (shippingPoint !== "4014") {
+      console.warn(`Skipping order ${document} with shipping point ${shippingPoint}`)
+      continue
+    }
 
     // Skip broken rows
     if (!document || !material) continue
 
     const deliveryDateRaw = get("Dlv.Date")
+    const confirmedQty = parseNumber(get("ConfirmQty"))
 
     result.push({
       salesOrderNo: document,
@@ -62,10 +69,11 @@ export function parseSAPSalesExport(text: string): SalesOrderLine[] {
       material,
       description: get("Description"),
 
+      SL: parseNumber(get("SLNo")),
+      linetype: confirmedQty > 0 ? "confirmed" : "backorder",
+
       orderQty: parseNumber(get("Order qty")),
-      confirmedQty:
-        parseNumber(get("ConfirmQty")) ||
-        parseNumber(get("Order qty")),
+      confirmedQty: confirmedQty,
 
       deliveryDate: parseSAPDate(deliveryDateRaw),
 
@@ -104,8 +112,6 @@ export function calculatePickSplit(
       fullPallets: 0,
       voicePicks: qty
     }
-  } else {
-    console.log(`Calculating pick split for material ${line.material}: ${qty} units, ${perPallet} cases per pallet`)
   }
 
   const fullPallets = Math.floor(qty / perPallet)
@@ -115,4 +121,13 @@ export function calculatePickSplit(
     fullPallets,
     voicePicks: remainder
   }
+}
+
+export function getMaterialsFromOrders(orders: Salesorder[]): Record<string,number> {
+  // returns materials and thier quantity across all orders, used for workload calculation
+  const materials: Record<string,number> = {}
+  orders.forEach(order => order.salesOrderLines.forEach(line => {
+    materials[line.material] = (materials[line.material] || 0) + line.confirmedQty
+  }))
+  return materials
 }

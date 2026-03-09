@@ -43,7 +43,7 @@ function buildSalesOrders(
 function buildWorkload(
   lines: SalesOrderLine[],
   masterMap: Record<string, ProductMaster>,
-    customerMaster: Record<string, CustomerMaster>
+  customerMaster: Record<string, CustomerMaster>
 ): WorkloadDay[] {
 
   const map = new Map<string, WorkloadDay>()
@@ -69,6 +69,7 @@ function buildWorkload(
     if (!map.has(key)) {
       map.set(key, {
         date: pickDate,
+        salesOrderNumbers: new Set(),
         fullPallets: 0,
         voicePicks: 0
       })
@@ -79,6 +80,7 @@ function buildWorkload(
 
     day.fullPallets += split.fullPallets
     day.voicePicks += split.voicePicks
+    day.salesOrderNumbers.add(line.salesOrderNo)
   }
 
   return Array.from(map.values())

@@ -42,6 +42,9 @@ type SalesOrderLine = {
   confirmedQty: number
   deliveryDate: string     // Dlv.Date
   unit: string              // CSE, EA, BUN
+
+  linetype: 'confirmed' | 'backorder'
+  SL: number
 }
 
 type Salesorder = {
@@ -70,6 +73,7 @@ type CustomerMaster = {
 
 type WorkloadDay = {
   date: Date
+  salesOrderNumbers: Set
 
   fullPallets: number
   voicePicks: number
