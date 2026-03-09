@@ -12,7 +12,7 @@ export function useDailySummary(month: number) {
 
     for (const group of groupedOrders) {
 
-        if (group.held) {
+        if (group.status === "held") {
             continue
         }
 

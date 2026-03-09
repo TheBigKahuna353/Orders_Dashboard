@@ -94,7 +94,8 @@ const productMasterData = [
     { material: '2343116', casesPerPallet: 228, casesPerLayer: 38 },
     { material: '2343503', casesPerPallet: 220, casesPerLayer: null },
     { material: '2349007', casesPerPallet: 60, casesPerLayer: null },
-    { material: '2350480', casesPerPallet: 36, casesPerLayer: 6 }
+    { material: '2350480', casesPerPallet: 36, casesPerLayer: 6 },
+    { material: '0772533', casesPerPallet: 113, casesPerLayer: 19 },
 ];
 
 

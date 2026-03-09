@@ -24,15 +24,8 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         palletsVariance: 0,
         deliverDate: order.deliverDate,
         pickupType: order.pickupType,
-        held: order.held,
         })
       }
-
-    if (order.held) {
-        console.log("order is held", order.groupId, order.deliveryNo)
-    } else {
-        console.log(order.held)
-    }
 
     function round(num: number, fractionDigits: number): number {
           return Number(num.toFixed(fractionDigits));

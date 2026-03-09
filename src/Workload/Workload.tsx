@@ -28,9 +28,6 @@ function Workload() {
     const { workload, salesordersByDay } = useWorkload();
     const nextPickDay = workload[1];
 
-    console.log("Workload data:", workload);
-    console.log("Sales orders by day:", salesordersByDay);
-
     return (
         <div className="workload-page">
             <div className="workload-content">

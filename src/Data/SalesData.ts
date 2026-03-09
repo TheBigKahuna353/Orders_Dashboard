@@ -99,10 +99,13 @@ export function calculatePickSplit(
 
   if (!perPallet || perPallet <= 0) {
     // treat everything as voice if pallet data missing
+    console.warn(`Missing or invalid casesPerPallet for material ${line.material}, treating all ${qty} as voice picks`)
     return {
       fullPallets: 0,
       voicePicks: qty
     }
+  } else {
+    console.log(`Calculating pick split for material ${line.material}: ${qty} units, ${perPallet} cases per pallet`)
   }
 
   const fullPallets = Math.floor(qty / perPallet)

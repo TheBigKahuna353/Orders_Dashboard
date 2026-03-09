@@ -171,9 +171,9 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
     }
     data[0].splice(0, 1); // also remove first element of header row
 
-  // Fetch the template file as ArrayBuffer
+  // Fetch the template file as ArrayBuffer from the public folder
   try {
-    const response = await fetch('/Orders_Dashboard/src/assets/template.xlsx');
+    const response = await fetch('/Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
     const template = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
     const worksheet = template.Sheets[template.SheetNames[0]];
