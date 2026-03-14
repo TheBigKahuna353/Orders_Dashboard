@@ -1,3 +1,87 @@
+/* Modal overlay for Add Order */
+.pickup-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.3);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal content for Add Order */
+.pickup-modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  width: 30%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.pickup-modal-add-input {
+  padding: 8px;
+  margin: auto;
+  margin-right: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.pickup-modal-order-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 8px 4px;
+  border-bottom: 1px solid #eee;
+  gap: 8px;
+}
+
+.pickup-modal-order-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.pickup-modal-order-customer {
+  font-weight: bold;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+.pickup-modal-order-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.pickup-modal-order-badge {
+  background: #e3e8f0;
+  color: #222;
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 0.95em;
+  font-family: monospace;
+  margin-right: 0;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+.pickup-modal-order-details {
+  color: #555;
+  font-size: 0.97em;
+  word-break: break-word;
+}
+
+.pickup-modal-no-orders {
+  color: #888;
+  text-align: center;
+  margin-top: 16px;
+}
 
 .pickup-content {
   padding: 20px;
@@ -47,6 +131,10 @@ input[type="checkbox"]:checked::before {
   width: 100%;
 }
 
+.hideOnPrint {
+  display: block;
+}
+
 .pickup-page {
   width: 100%;
   display: flex;
@@ -59,6 +147,10 @@ input[type="checkbox"]:checked::before {
 @media print {
 
   button {
+    display: none;
+  }
+
+  .hideOnPrint {
     display: none;
   }
 

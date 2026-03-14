@@ -144,6 +144,7 @@ export const useOrdersStore = create<OrdersState>()(
             partialize: (state) => ({
                 orders: state.orders,
                 salesOrderLines: state.salesOrderLines,
+                pickupPlans: state.pickupPlans,
             }),
             onRehydrateStorage: () => (state) => {
                 if (state?.orders) {

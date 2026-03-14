@@ -70,17 +70,13 @@ export default function Summary() {
     };
     const [hoveredCategory, setHoveredCategory] = React.useState<string | null>(null);
 
-    const import_data = async (file: File, importType: string) => {
+    const import_data = async (file: File, importType: 'clear' | 'overwrite' | 'add') => {
         if (!file) return;
         onCSVUpload(file, importType);
     };
 
-    const getCurrentMonth = () => {
-        const now = new Date();
-        return now.getMonth()
-    };
 
-    const [month, setMonth] = React.useState(getCurrentMonth());
+    const [month, setMonth] = React.useState(new Date().getMonth());
     const [year, setYear] = React.useState(new Date().getFullYear());
     const {data, parentOrders} = useDailySummary(month, year);
     const setDateRange = useUIStore(s => s.setDateRange)

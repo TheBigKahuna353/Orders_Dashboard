@@ -17,10 +17,10 @@ export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}
     return useMemo(() => {
         const pickupPlansForDay = groupedOrders.filter(o => {
             const pickDate = getPickDate(o.customer, fromDateOnlyString(o.deliverDate), customerMaster)
-            if (pickDate.getTime() !== day.getTime()) return false // filter to orders for the selected day
             if (pickupPlans[o.groupId] !== undefined) { 
                 return fromDateOnlyString(pickupPlans[o.groupId].date).getTime() === day.getTime() // if plan exists, only include if for the selected day
             }
+            if (pickDate.getTime() !== day.getTime()) return false // filter to orders for the selected day
             return true
         }).map(o => ({
             order: o,

@@ -29,6 +29,8 @@ type GroupedOrder = {
   palletsVariance?: number
   deliverDate: string,
 
+  searchableString: string
+
   holdReason?: "backorder" | "small_order"
   pickupType: "delivery" | "pickup" | 'courier'
 }

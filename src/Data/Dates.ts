@@ -25,3 +25,9 @@ export function displayDate(date: string): string {
     const [year, month, day] = date.split("-").map(Number)
     return `${day}/${month}/${year}`
 }
+
+export function addDays(date: string, days: number): string {
+    const d = fromDateOnlyString(date)
+    d.setDate(d.getDate() + days)
+    return toDateOnlyString(d)
+}

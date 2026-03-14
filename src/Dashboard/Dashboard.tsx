@@ -38,7 +38,7 @@ function Dashboard() {
 
     const layout = useUIStore((s) => s.dashboardLayout)
     
-    const import_data = async (file: File, importOption: string) => {
+    const import_data = async (file: File, importOption: 'clear' | 'overwrite' | 'add') => {
       if ( !file ) return;
       onCSVUpload(file, importOption);
     }
