@@ -3,7 +3,7 @@ import { filterOrder, getPickDate } from "../Data/filter"
 import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
 import { useCustomerStore } from "../Stores/CustomerStore"
 
-export function useDailySummary(month: number) {
+export function useDailySummary(month: number, year: number) {
 
     const { groupedOrders } = useOrdersStore()
 
@@ -21,10 +21,11 @@ export function useDailySummary(month: number) {
           console.warn("Invalid date:", group, date)
           continue
         }
-        // Only include orders for the selected month
-        if (fromDateOnlyString(date).getMonth() !== month) {
-          continue
-        }
+                // Only include orders for the selected month and year
+                const orderDate = fromDateOnlyString(date);
+                if (orderDate.getMonth() !== month || orderDate.getFullYear() !== year) {
+                    continue;
+                }
 
         if (!map.has(date)) {
             map.set(date, {

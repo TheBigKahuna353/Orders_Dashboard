@@ -23,7 +23,13 @@
 
   --table-header: #262626;
   --table-row-hover: #333333;
-}
+    /* Modal */
+    --modal-overlay-bg: rgba(0,0,0,0.3);
+    --modal-shadow: rgba(0,0,0,0.2);
+
+    /* Subtle highlight */
+    --highlight-bg: #233a5e;
+  }
 
 [data-theme="light"] {
   --bg: #f5f5f5;
@@ -48,4 +54,10 @@
 
   --table-header: #eeeeee;
   --table-row-hover: #f0f0f0;
-}
+    /* Modal */
+    --modal-overlay-bg: rgba(0,0,0,0.15);
+    --modal-shadow: rgba(67,56,202,0.08);
+
+    /* Subtle highlight */
+    --highlight-bg: #c7e0f7;
+  }

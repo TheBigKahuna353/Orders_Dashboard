@@ -11,11 +11,18 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
   while (daysSubtracted < daysToSubtract) {
     newDate.setDate(newDate.getDate() - 1); // Subtract one calendar day
     const dayOfWeek = newDate.getDay();
+    const month = newDate.getMonth() + 1; // getMonth is zero-based
+    const date = newDate.getDate();
 
     // Check if the current day is a weekday (Monday=1, ..., Friday=5)
     // 0 is Sunday, 6 is Saturday
     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      daysSubtracted++;
+      // public holidays
+      if (!(month === 2 && date === 6) && !(month === 4 && date === 25)) {
+        // It's a public holiday, do not count this day
+        daysSubtracted++;
+        console.warn("subtractWorkDays skipped a public holiday:", newDate.toDateString())
+      }
     }
   }
 

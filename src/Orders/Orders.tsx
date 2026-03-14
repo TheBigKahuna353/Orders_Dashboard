@@ -7,9 +7,9 @@ import './Orders.css';
 
 export default function Orders() {
 
-    const import_data = async (file: File) => {
+    const import_data = async (file: File, importOption: string) => {
         if ( !file ) return;
-        await onCSVUpload(file);
+        await onCSVUpload(file, importOption);
     }
 
     return (

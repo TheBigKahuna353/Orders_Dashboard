@@ -8,6 +8,7 @@ import { persist } from 'zustand/middleware'
 type CycleCountState = {
     recordMaster: Record<string, CycleCountRecord>
 
+    setRecords: (records: CycleCountRecord[]) => void
     upsertRecordsFromExcel: (records: CycleCountRecord[]) => void
     updateRecord: (material: string, updatedRecord: Partial<CycleCountRecord>
     ) => void
@@ -17,6 +18,13 @@ export const useCycleCountStore = create<CycleCountState>()(
     persist(
         (set) => ({
             recordMaster: {},
+            setRecords: (records) => {
+                const newMaster: Record<string, CycleCountRecord> = {}
+                for (const record of records) {
+                    newMaster[record.material + record.countDate] = record
+                }
+                set({ recordMaster: newMaster })
+            },
             upsertRecordsFromExcel: (records) =>
                 set((state) => {
                     const updated = { ...state.recordMaster }

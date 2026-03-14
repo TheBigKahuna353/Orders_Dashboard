@@ -129,3 +129,13 @@ type WeeklyCycleCountSummary = {
     palletsVariance: number
     casesVariance: number
 }
+
+type DispatchLane = "dsp11" | "dsp12" | "dsp13" | "dsp14" | "dsp15" | "dsp16" | "dsp17" | "dsp18" | "dsp19" | "dsp20" | "dsp21" | "dsp22" | "dsp23" | "dsp24" | "dsp25" | "outside"
+
+type PickupPlan = {
+  groupId: string
+  pickupTime?: string
+  date: string
+  location?: DispatchLane
+  priority?: boolean
+}

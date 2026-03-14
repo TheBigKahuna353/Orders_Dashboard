@@ -13,6 +13,7 @@ import PrimeReact from 'primereact/api';
 
 import './App.css'
 import CycleCount from './CycleCount/CycleCount';
+import PickupTimes from './Pickups/Pickups';
 
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/summary" element={<Summary />} />
           <Route path="/cyclecount" element={<CycleCount />} />
+          <Route path="/pickups" element={<PickupTimes />} />
         </Routes>
       </div>
       </HashRouter>

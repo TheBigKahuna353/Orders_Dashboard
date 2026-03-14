@@ -43,10 +43,11 @@ function buildSalesOrders(
   return Object.values(ordersMap)
 }
     
+
 function buildBackOrders(
   lines: SalesOrderLine[],
   masterMap: Record<string, ProductMaster>,
-) : {voiceqty: number, pallets: number}[] {
+) : {voiceqty: number, pallets: number, salesOrderNo: string}[] {
   const backOrders = lines.filter(
     line => line.linetype === 'backorder' && 
     line.confirmedQty > 0 && 
@@ -56,7 +57,8 @@ function buildBackOrders(
     const split = calculatePickSplit(line, master)
     return {
       voiceqty: split.voicePicks,
-      pallets: split.fullPallets
+      pallets: split.fullPallets,
+      salesOrderNo: line.salesOrderNo
     };
   });
 
@@ -139,7 +141,9 @@ export function useWorkload() {
     }
 
     const backOrders = buildBackOrders(salesOrderLines, productMaster);
+    // Count unique salesOrderNo in backOrders
+    const numBackOrders = new Set(backOrders.map(b => b.salesOrderNo)).size;
 
-    return { workload, salesordersByDay, backOrders };
+    return { workload, salesordersByDay, backOrders, numBackOrders };
   }, [salesOrderLines, productMaster, customerMaster]);
 }

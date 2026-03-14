@@ -1,3 +1,65 @@
+/* Import Modal Styles (theme-aware) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--modal-overlay-bg, rgba(0,0,0,0.3));
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px var(--modal-shadow, rgba(0,0,0,0.2));
+  min-width: 320px;
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-content form > div {
+  margin-bottom: 12px;
+}
+
+.modal-content label {
+  font-size: 15px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.modal-content input[type="radio"] {
+  margin-right: 8px;
+  accent-color: var(--accent);
+}
+
+.modal-content button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-content button:hover {
+  background: var(--link-hover);
+}
 .header {
   display: flex;
   justify-content: space-between;
@@ -194,4 +256,11 @@
 .segment-highlight.right ~ .segment-btn:nth-child(3) {
 
     color: white;
+}
+
+
+@media print {
+  .header {
+    display: none;
+  }
 }

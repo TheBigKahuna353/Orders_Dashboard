@@ -74,8 +74,14 @@ export function getPickDate(
 ) {
 
   const master = customerMaster[customer]
-
   if (!master) return deliverDate
+
+  if (deliverDate.getTime() < new Date('2026-02-01').getTime()) {
+        // oot small have 1 day instead of 2 days lead time before Feb 2026, so we need to handle that as a special case
+        if (filterOrder(master.city, customer, 'Out of town small')) {
+            return subtractWorkDays(deliverDate, 1)
+        }
+    }
 
   return subtractWorkDays(
     deliverDate,

@@ -27,6 +27,8 @@ function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Pr
   })
 }
 
+let indexDebug = 0;
+
 
 function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
   return rows.map((row) => {
@@ -66,7 +68,8 @@ function parseDate(dateStr: string): string {
 }
 
 function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
-  return rows.map((row) => {
+  return rows.map((row, index) => {
+      indexDebug = index
       let customer = row["Deliver To"]?.trim()
       const city = row["City"]?.trim()
       const comments = row["Comments"]?.trim() || ""
@@ -117,13 +120,14 @@ async function detectFormat(file: File): Promise<"formatA" | "formatB" | "format
 
 export async function onCSVUpload(
   file: File,
-  update: boolean = false
+  importType: 'clear' | 'overwrite' | 'add'
 ) {
   console.log("Importing file:", file.name)
   const { setOrders, upsertOrders } = useOrdersStore.getState()
   try {
     const format = await detectFormat(file)
     const rows = await parseCsvFile(file, format)
+    console.log("Parsed CSV Rows:", rows) // log parsed rows for debugging
     let parsedOrders: Order[] = []
 
     if (format === "formatA") {
@@ -134,16 +138,22 @@ export async function onCSVUpload(
       throw new Error("Unknown CSV format")
     }
 
+    if (parsedOrders.length === 0) {
+      alert("No valid orders found in the file")
+      return
+    }
 
-    if (update) {
+    if (importType === "overwrite") {
       upsertOrders(parsedOrders)
-    } else {
+    } else if (importType === "clear") {
       setOrders(parsedOrders)
+    } else {
+      setOrders([])
     }
     useCustomerStore.getState().upsertCustomersFromOrders(parsedOrders)
     console.log("Imported orders:", parsedOrders)
   } catch (err) {
-    console.error("CSV import failed", err)
+    console.error("CSV import failed on row", indexDebug, err)
     alert("Failed to import CSV file")
   }
 }

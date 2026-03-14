@@ -109,11 +109,15 @@ async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[
 }
 
 
-export async function onExcelUpload(file: File, date: Date) {
+export async function onExcelUpload(file: File, date: Date, format: 'clear' | 'overwrite' | 'add') {
   try {
     const data = await (await parseExcelFile(file, date))
     console.log("Parsed Excel Data:", data)
-    useCycleCountStore.getState().upsertRecordsFromExcel(data,)
+    if (format === "clear") {
+        useCycleCountStore.getState().setRecords(data)
+     } else {
+      useCycleCountStore.getState().upsertRecordsFromExcel(data)
+    }
   } catch (err) {
     console.error("Error uploading Excel file:", err)
   }
@@ -128,7 +132,6 @@ export async function parseExcelToRows(file: File): Promise<string[][]> {
         const data = e.target?.result
         const workbook = XLSX.read(data, { type: "array" })
         const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-        console.log("Worksheet Data:", worksheet)
         const jsonData = XLSX.utils.sheet_to_json(worksheet, {
           range: 5 // skip first 5 rows which are headers
         })

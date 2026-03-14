@@ -13,7 +13,7 @@ import { useUIStore } from '../Stores/UIStore';
 
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onImportClick: (e: any) => void;
+  onImportClick?: (e: any, importOption: 'clear' | 'overwrite' | 'add') => void;
   onExportClick?: () => void;
   showFilters?: {
     layout?: boolean, 
@@ -28,6 +28,9 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
+    const [showImportModal, setShowImportModal] = React.useState(false);
+    const [importOption, setImportOption] = React.useState<'clear' | 'overwrite' | 'add'>('clear');
+    const [pendingFile, setPendingFile] = React.useState<File | null>(null);
   const dateRange = useUIStore((s) => s.dateRange)
   const setDateRange = useUIStore((s) => s.setDateRange)
   const currentFilter = useUIStore((s) => s.deliveryFilter)
@@ -45,12 +48,12 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
   const import_data = async (e: any) => {
     const file = e.files[0];
     if ( !file ) return;
-    await onImportClick(file);
-    fileRef.current?.clear();
+      setPendingFile(file);
+      setShowImportModal(true);
+      fileRef.current?.clear();
   }
 
   const onDateChange = (dates: [Date | null, Date | null]) => {
-    console.log(dates);
     setDateRange?.(dates);
 }
 
@@ -60,13 +63,10 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
 
     return (
       <div className="datepicker-footer">
-
         <div className="datepicker-mode-label">
           Timeline
         </div>
-
         <div className="segmented-control">
-
           {/* sliding background */}
           <div
             className={
@@ -75,7 +75,6 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
                 : "segment-highlight right"
             }
           />
-
           <button
             type="button"
             title='Order Pick Date'
@@ -84,7 +83,6 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
           >
             Pick Date
           </button>
-
           <button
             type="button"
             title='Order Delivery Date'
@@ -93,9 +91,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
           >
             Delivery Date
           </button>
-
         </div>
-
       </div>
     )
   }
@@ -111,6 +107,79 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
             Export
           </button>
         )}
+          {/* Import Modal */}
+          {showImportModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h2>Import Orders</h2>
+                <form>
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="importOption"
+                        value="clear"
+                        checked={importOption === 'clear'}
+                        onChange={() => setImportOption('clear')}
+                      />
+                      Clear orders and upload
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="importOption"
+                        value="overwrite"
+                        checked={importOption === 'overwrite'}
+                        onChange={() => setImportOption('overwrite')}
+                      />
+                      Overwrite and update
+                    </label>
+                  </div>
+                  <div>
+                    <label style={{color: 'gray', cursor: 'not-allowed'}}>
+                      <input
+                        type="radio"
+                        name="importOption"
+                        value="add"
+                        disabled
+                        checked={importOption === 'add'}
+                        onChange={() => setImportOption('add')}
+                      />
+                      Add new orders only
+                    </label>
+                  </div>
+                  <div style={{marginTop: '16px'}}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (pendingFile) {
+                          if (onImportClick) await onImportClick(pendingFile, importOption);
+                          fileRef.current?.clear();
+                          toast.current?.show({ severity: 'info', summary: 'Info', detail: 'File uploaded successfully!' });
+                        }
+                        setShowImportModal(false);
+                        setPendingFile(null);
+                      }}
+                      style={{marginRight: '8px'}}
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowImportModal(false);
+                        setPendingFile(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         {showFilters && showFilters.layout && setLayout && (
           <Dropdown value={layout} options={
             [0, 1].map(i => ({ label: `Layout ${i + 1}`, value: i }))
@@ -150,16 +219,16 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
               </DatePicker>
           </div>
         )}
-        <FileUpload 
-          ref={fileRef}
-          mode="basic" 
-          name="demo[]" 
-          accept={showFilters?.filetype ?? "text/*"} 
-          maxFileSize={1000000} 
-          uploadHandler={import_data}
-          auto
-          chooseLabel='Upload'
-          customUpload/>
+        {onImportClick && (
+          <FileUpload 
+            ref={fileRef}
+            mode="basic" 
+            name="demo[]" 
+            accept={showFilters?.filetype ?? "*"}
+            uploadHandler={import_data}
+            auto
+            chooseLabel='Upload'
+            customUpload/>)}
         <button onClick={toggleTheme}>
           {theme === 'dark' ? <MdLightMode /> : <MdDarkMode />}
         </button>

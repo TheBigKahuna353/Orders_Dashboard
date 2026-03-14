@@ -2,6 +2,7 @@ import React from 'react'
 import './StatsCards.css'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
+import { displayDate } from '../Data/Dates'
 
 interface NotPickedProps {
   id: string
@@ -36,7 +37,7 @@ const NotPicked: React.FC<NotPickedProps> = () => {
                                 <td className="stat-label">{order.customer}</td>
                                 <td className="stat-value">{order.orders.length}</td>
                                 <td className="stat-value">{order.totalPallets}</td>
-                                <td className="stat-value">{order.deliverDate}</td>
+                                <td className="stat-value">{displayDate(order.deliverDate)}</td>
                             </tr>
                         );
                     })}

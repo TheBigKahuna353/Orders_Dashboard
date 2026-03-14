@@ -7,12 +7,56 @@ import { useMemo } from "react"
 import { useUIStore } from "../Stores/UIStore"
 import { useNavigate } from "react-router";
 
+
 interface Totals {
-    orders: number
-    pallets: number
-    weight: number
-    cube: number
+    metro: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    },
+    outOfTown: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    },
+    dispatch: {
+        orders: number
+        pallets: number
+        weight: number
+        cube: number
+    }
 }
+
+const addToTotal = (item1: Totals, item2: DailySummary): Totals => {
+    return {
+        metro: {
+            orders: item1.metro.orders + item2.metro.orders,
+            pallets: item1.metro.pallets + item2.metro.pallets,
+            weight: item1.metro.weight + item2.metro.weight,
+            cube: item1.metro.cube + item2.metro.cube,
+        },
+        outOfTown: {
+            orders: item1.outOfTown.orders + item2.outOfTown.orders,
+            pallets: item1.outOfTown.pallets + item2.outOfTown.pallets,
+            weight: item1.outOfTown.weight + item2.outOfTown.weight,
+            cube: item1.outOfTown.cube + item2.outOfTown.cube,
+        },
+        dispatch: {
+            orders: item1.dispatch.orders + item2.dispatch.orders,
+            pallets: item1.dispatch.pallets + item2.dispatch.pallets,
+            weight: item1.dispatch.weight + item2.dispatch.weight,
+            cube: item1.dispatch.cube + item2.dispatch.cube,
+        }
+    }
+}
+
+const getNewTotal = () => ({
+    metro: { orders: 0, pallets: 0, weight: 0, cube: 0 },
+    outOfTown: { orders: 0, pallets: 0, weight: 0, cube: 0 },
+    dispatch: { orders: 0, pallets: 0, weight: 0, cube: 0 }
+} as Totals)
 
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -26,9 +70,9 @@ export default function Summary() {
     };
     const [hoveredCategory, setHoveredCategory] = React.useState<string | null>(null);
 
-    const import_data = async (file: File) => {
+    const import_data = async (file: File, importType: string) => {
         if (!file) return;
-        onCSVUpload(file);
+        onCSVUpload(file, importType);
     };
 
     const getCurrentMonth = () => {
@@ -37,7 +81,8 @@ export default function Summary() {
     };
 
     const [month, setMonth] = React.useState(getCurrentMonth());
-    const {data, parentOrders} = useDailySummary(month);
+    const [year, setYear] = React.useState(new Date().getFullYear());
+    const {data, parentOrders} = useDailySummary(month, year);
     const setDateRange = useUIStore(s => s.setDateRange)
     const setDateMode = useUIStore(s => s.setDateMode)
     const setDeliveryFilter = useUIStore(s => s.setDeliveryFilter)
@@ -45,35 +90,46 @@ export default function Summary() {
 
     const totals = useMemo(() => {
         const weekly: Totals[] = [];
-        let acc: Totals = { orders: 0, pallets: 0, weight: 0, cube: 0 };
+        let acc: Totals = getNewTotal();
         data.forEach((day) => {
-            acc.orders += day.dispatch.orders;
-            acc.pallets += day.dispatch.pallets;
-            acc.weight += day.dispatch.weight;
-            acc.cube += day.dispatch.cube;
+            acc = addToTotal(acc, day);
             // Friday (5) marks end of week
             if (day.date.getDay() === 5) {
                 weekly.push({ ...acc });
-                acc = { orders: 0, pallets: 0, weight: 0, cube: 0 };
+                acc = getNewTotal();
             }
         });
         // If last week is incomplete, add remaining
-        if (acc.orders > 0 || acc.pallets > 0 || acc.weight > 0 || acc.cube > 0) {
+        if (acc.dispatch.orders > 0 || acc.dispatch.pallets > 0 || acc.dispatch.weight > 0 || acc.dispatch.cube > 0) {
             weekly.push({ ...acc });
         }
         const monthly: Totals = weekly.reduce(
             (sum, w) => ({
-                orders: sum.orders + w.orders,
-                pallets: sum.pallets + w.pallets,
-                weight: sum.weight + w.weight,
-                cube: sum.cube + w.cube,
+                metro: {
+                    orders: sum.metro.orders + w.metro.orders,
+                    pallets: sum.metro.pallets + w.metro.pallets,
+                    weight: sum.metro.weight + w.metro.weight,
+                    cube: sum.metro.cube + w.metro.cube
+                },
+                outOfTown: {
+                    orders: sum.outOfTown.orders + w.outOfTown.orders,
+                    pallets: sum.outOfTown.pallets + w.outOfTown.pallets,
+                    weight: sum.outOfTown.weight + w.outOfTown.weight,
+                    cube: sum.outOfTown.cube + w.outOfTown.cube
+                },
+                dispatch: {
+                    orders: sum.dispatch.orders + w.dispatch.orders,
+                    pallets: sum.dispatch.pallets + w.dispatch.pallets,
+                    weight: sum.dispatch.weight + w.dispatch.weight,
+                    cube: sum.dispatch.cube + w.dispatch.cube
+                }
             }),
-            { orders: 0, pallets: 0, weight: 0, cube: 0 }
+            getNewTotal()
         );
         return { weekly, monthly };
     }, [data]);
 
-    const avgOrders = data.length > 0 ? Math.round(totals.monthly.orders / data.length) : 0;
+    const avgOrders = data.length > 0 ? Math.round(totals.monthly.dispatch.orders / data.length) : 0;
 
     const peakDay = useMemo(() => {
         return data.reduce((max, day) =>
@@ -121,6 +177,15 @@ export default function Summary() {
         navigate("/orders")
     }
 
+    const onClickNextMonth = () => {
+        setYear(prev => prev + (month === 11 ? 1 : 0));
+        setMonth(prev => (prev + 1) % 12);
+    }
+    const onClickPrevMonth = () => {
+        setYear(prev => prev - (month === 0 ? 1 : 0));
+        setMonth(prev => (prev - 1 + 12) % 12);
+    }
+
     function renderCategory(
         label: string,
         key: "metro" | "outOfTown" | "dispatch",
@@ -165,7 +230,7 @@ export default function Summary() {
                             : <td key={day.date.getTime()} onClick={() => onClickRow(key, day.date)}>{round(day[key][metric])}</td>;
                         // Insert weekly total column after Friday
                         if (day.date.getDay() === 5 && weekIdx < totals.weekly.length) {
-                            const weekTotal = totals.weekly[weekIdx]?.[metric] ?? 0;
+                            const weekTotal = totals.weekly[weekIdx]?.[key]?.[metric] ?? 0;
                             weekIdx++;
                             return [cell,
                                 <td key={"week-total-" + weekIdx + metric} className="summary-weekly-col summary-total-col" onClick={() => onClickWeeklyTotal(day.date, key)}>
@@ -195,16 +260,16 @@ export default function Summary() {
                     <button
                         className="summary-month-btn"
                         style={{ marginRight: 16 }}
-                        onClick={() => { setMonth(prev => (prev - 1 + 12) % 12); }}
+                        onClick={onClickPrevMonth}
                         aria-label="Previous Month"
                     >
                         &#8592;
                     </button>
-                    <h2 className="summary-title" style={{ flex: 1, textAlign: 'center', margin: 0 }}>{monthNames[month]} Summary</h2>
+                    <h2 className="summary-title" style={{ flex: 1, textAlign: 'center', margin: 0 }}>{monthNames[month]} {year} Summary</h2>
                     <button
                         className="summary-month-btn"
                         style={{ marginLeft: 16 }}
-                        onClick={() => { setMonth(prev => (prev + 1) % 12); }}
+                        onClick={onClickNextMonth}
                         aria-label="Next Month"
                     >
                         &#8594;
@@ -216,17 +281,17 @@ export default function Summary() {
 
                     <div className="kpi-card">
                         <div className="kpi-label">Total Orders/Total Parent Orders</div>
-                        <div className="kpi-value">{totals.monthly.orders}/{parentOrders}</div>
+                        <div className="kpi-value">{totals.monthly.dispatch.orders}/{parentOrders}</div>
                     </div>
 
                     <div className="kpi-card">
                         <div className="kpi-label">Total Pallets</div>
-                        <div className="kpi-value">{totals.monthly.pallets}</div>
+                        <div className="kpi-value">{totals.monthly.dispatch.pallets}</div>
                     </div>
 
                     <div className="kpi-card">
                         <div className="kpi-label">Total Weight (kg)</div>
-                        <div className="kpi-value">{round(totals.monthly.weight).toLocaleString()}</div>
+                        <div className="kpi-value">{round(totals.monthly.dispatch.weight).toLocaleString()}</div>
                     </div>
 
                     <div className="kpi-card">

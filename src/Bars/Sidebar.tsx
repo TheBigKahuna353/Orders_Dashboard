@@ -7,6 +7,7 @@ const Sidebar: React.FC = () => {
   const menuItems = [
     { icon: '📊', label: 'Dashboard', active: location.pathname === '/dashboard' || location.pathname === '/' },
     { icon: '📦', label: 'Orders', active: location.pathname === '/orders' },
+    { icon: '🕒', label: 'Pickups', active: location.pathname === '/pickups' },
     { icon: '🚚', label: 'Workload', active: location.pathname === '/workload' },
     { icon: '📈', label: 'Summary', active: location.pathname === '/summary' },
     { icon: '🔍', label: 'Cycle Count', active: location.pathname === '/cyclecount' },

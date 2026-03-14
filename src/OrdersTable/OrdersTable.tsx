@@ -7,6 +7,7 @@ import { useUIStore } from '../Stores/UIStore'
 import { MdChevronRight, MdExpandMore } from 'react-icons/md'
 import { useOrdersStore } from '../Stores/OrdersStore'
 import { Capitalize } from '../Data/utils'
+import { displayDate } from '../Data/Dates'
 
 interface props {
   scrollTop?: number,
@@ -158,7 +159,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
                   <td>{Capitalize(order.status)}</td>
-                  <td>{order.deliverDate}</td>
+                  <td>{displayDate(order.deliverDate)}</td>
                   <td style={{position:'relative'}}>
                     <button
                       className="order-action-btn"
@@ -180,7 +181,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
                   <td>{order.totalVolume}</td>
                   <td>{order.orders.length}</td>
                   <td>{order.status}</td>
-                  <td>{order.deliverDate}</td>
+                  <td>{displayDate(order.deliverDate)}</td>
                   <td>
                     <button onClick={(e) => handleDropdown(e, index)}>
                       More

@@ -19,6 +19,7 @@ import { useOrdersStore } from '../Stores/OrdersStore.ts';
 import { useUIStore } from '../Stores/UIStore.ts';
 
 import { WIDGET_DROP_HANDLERS, WIDGETS, type WIDGET_NAMES } from '../Widgets/Widgets.tsx';
+import { displayDate } from '../Data/Dates.ts';
 
 
 
@@ -37,9 +38,9 @@ function Dashboard() {
 
     const layout = useUIStore((s) => s.dashboardLayout)
     
-    const import_data = async (file: File) => {
+    const import_data = async (file: File, importOption: string) => {
       if ( !file ) return;
-      onCSVUpload(file);
+      onCSVUpload(file, importOption);
     }
 
 
@@ -75,7 +76,7 @@ function Dashboard() {
                   <td style={{width: overlayWidths[4] || 0}}>{activeOrder.totalWeight.toLocaleString()}</td>
                   <td style={{width: overlayWidths[5] || 0}}>{activeOrder.totalVolume}</td>
                   <td style={{width: overlayWidths[6] || 0}}>{activeOrder.orders.length}</td>
-                  <td style={{width: overlayWidths[7] || 0}}>{activeOrder.deliverDate.toLocaleString()}</td>
+                  <td style={{width: overlayWidths[7] || 0}}>{displayDate(activeOrder.deliverDate)}</td>
                 </tr>
               </tbody>
             </table>

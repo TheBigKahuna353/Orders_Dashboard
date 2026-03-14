@@ -21,6 +21,9 @@ type OrdersState = {
     holdGroup: (groupId: string, hold: boolean, reason?: "backorder" | "small_order") => void
     changePickupType: (groupId: string, pickupType: "courier" | "pickup" | "delivery") => void
 
+    pickupPlans: Record<string, PickupPlan>
+    setPickupPlan: (groupId: string, plan: PickupPlan) => void
+
 }
 
 
@@ -30,14 +33,15 @@ export const useOrdersStore = create<OrdersState>()(
         orders: [],
         groupedOrders: [],
         productMaster: getProductMasterData(),
+        pickupPlans: {},
 
-        setOrders: (orders) =>
+        setOrders: (orders) => // when setting orders directly, we assume it's a full replacement (e.g. from file import with "clear" option)
             set({
                 orders,
                 groupedOrders: groupOrders(orders),
             }),
 
-        upsertOrders: (incoming) => {
+        upsertOrders: (incoming) => { // when upserting, we merge with existing orders to preserve local-only fields like hold status and pickup type
             const existing = get().orders
             const map = new Map(existing.map(o => [o.deliveryNo, o]))
 
@@ -66,6 +70,7 @@ export const useOrdersStore = create<OrdersState>()(
                 })
             }
             const merged = Array.from(map.values())
+            console.log("Upserting orders. Incoming:", incoming.length, "Existing:", existing.length, "Merged:", merged.length)
             set({
                 orders: merged,
                 groupedOrders: groupOrders(merged),
@@ -126,6 +131,13 @@ export const useOrdersStore = create<OrdersState>()(
                 )
                 return { orders, groupedOrders: groupOrders(orders) }
             }),
+        setPickupPlan: (groupId: string, plan: PickupPlan) =>
+            set(state => ({
+                pickupPlans: {
+                ...state.pickupPlans,
+                [groupId]: plan
+                }
+            })),
         }),
         {
             name: 'orders-storage',

@@ -6,6 +6,7 @@ import { useUIStore } from "../Stores/UIStore";
 import './CycleCount.css';
 import useSortedData, { useWeeklyData } from "./Getdata";
 import CycleCountDateModal from "./CycleCountDateModal";
+import { displayDate } from "../Data/Dates";
 
 export default function CycleCount() {
 
@@ -15,19 +16,21 @@ export default function CycleCount() {
     const weeklyData = useWeeklyData()
     const [pendingFile, setPendingFile] = useState<File | null>(null)
     const [showDateModal, setShowDateModal] = useState(false)
+    const [importFormat, setImportFormat] = useState<'clear' | 'overwrite' | 'add'>('add')
     const { cycleCountView, setCycleCountView } = useUIStore()
     const displayData = cycleCountView === "weekly" ? weeklyData : data
 
-    const import_data = async (file: File) => {
+    const import_data = async (file: File, format: 'clear' | 'overwrite' | 'add') => {
         if ( !file ) return;
         setPendingFile(file)
+        setImportFormat(format)
         setShowDateModal(true)
     }
 
     const onConfirmDate = async (date: Date) => {
         setShowDateModal(false)
         if (pendingFile) {
-            await onExcelUpload(pendingFile, date)
+            await onExcelUpload(pendingFile, date, importFormat)
             setPendingFile(null)
         }
     }
@@ -157,7 +160,7 @@ export default function CycleCount() {
                         >
                         {cycleCountView !== "latest"  && (
                             <td>
-                                {record.countDate}
+                                {displayDate(record.countDate)}
                             </td>
                             )}
                         {cycleCountView !== "weekly" && (

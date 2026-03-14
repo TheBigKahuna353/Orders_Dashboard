@@ -10,14 +10,18 @@ export function toDateOnlyString(date: Date): string {
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const day = String(date.getDate()).padStart(2, "0")
 
-    return `${day}-${month}-${year}`
+    return `${year}-${month}-${day}`
 
 }
 
 export function fromDateOnlyString(value: string): Date {
 
-    const [day, month, year] = value.split("-").map(Number)
+    const [year, month, day] = value.split("-").map(Number)
 
     return new Date(year, month - 1, day)
 
+}
+export function displayDate(date: string): string {
+    const [year, month, day] = date.split("-").map(Number)
+    return `${day}/${month}/${year}`
 }
