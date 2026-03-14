@@ -92,27 +92,33 @@ type WidgetLayout = {
 type Filter = 'All' | 'All Out of Town' | 'Out of town small' | 'All Locals' | 'Locals small' | 'Bulk';
 
 type DailySummary = {
-    date: Date
-    metro: {
-        orders: number
-        pallets: number
-        weight: number
-        cube: number
-    }
+  date: Date
+  metro: {
+    orders: number
+    pallets: number
+    weight: number
+    cube: number
+  }
 
-    outOfTown: {
-        orders: number
-        pallets: number
-        weight: number
-        cube: number
-    }
+  outOfTown: {
+    orders: number
+    pallets: number
+    weight: number
+    cube: number
+  }
 
-    dispatch: {
-        orders: number
-        pallets: number
-        weight: number
-        cube: number
-    }
+  dispatch: {
+    orders: number
+    pallets: number
+    weight: number
+    cube: number
+  }
+
+  bulk: {
+    woolworths: number // pallet count
+    foodstuffsDunedin: number // pallet count
+    foodstuffsChristchurch: number // pallet count
+  }
 }
 
 type CycleCountRecord = {
