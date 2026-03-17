@@ -1,23 +1,20 @@
 import OrdersTable from "../OrdersTable/OrdersTable"
 import SalesRep from "./SalesRep"
-import Courier from "./Couriers"
+import Couriers from "./Couriers"
 import Held from "./Held"
 import NotPicked from "./NotPicked"
 import { useOrdersStore } from "../Stores/OrdersStore"
 
-export type WIDGET_NAMES = "orders" | "sales" | "courier" | "held" | "not-picked"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ordersTableHandler: React.FC<{ id: string, extras?: any }> = ({ extras }) => {
-  return <OrdersTable scrollTop={extras?.scrollTop} widget={true} isDragging={extras?.isDragging}/>
+const ordersTableHandler: React.FC<WidgetProps> = ({ scrollTop, isDragging }) => {
+  return <OrdersTable scrollTop={scrollTop} widget={true} isDragging={isDragging}/>
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const WIDGETS: Record<WIDGET_NAMES, React.FC<{ id: string, extras?: any }>> = {
+export const WIDGETS: Record<WIDGET_NAMES, React.FC<WidgetProps>> = {
     "orders": ordersTableHandler,
     "sales": SalesRep,
-    "courier": Courier,
+    "courier": Couriers,
     "held": Held,
     "not-picked": NotPicked
 }

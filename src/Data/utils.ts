@@ -25,7 +25,7 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
       }
     }
   }
-
+   
   return newDate;
 }
 

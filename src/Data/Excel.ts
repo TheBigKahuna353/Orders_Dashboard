@@ -16,6 +16,10 @@ const SUMMARY_RANGES = [
   "AC10:AG13",
   "AC15:AG18",
   "AK5:AO8",
+  "E29:I31",
+  "M29:Q31",
+  "U29:Y31",
+  "AC29:AG31",
 ]
 
 function addOuterBorder(ws: XLSX.WorkSheet, range: string) {
@@ -160,9 +164,19 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
       console.error('Table not found:', tableId);
       return;
     }
+    
     const dataText = table.innerText;
     const rows = dataText.split('\n');
     const data = rows.map(row => row.split('\t'));
+
+    // if isBulk, the table has 3 extra rows, starting from row 10.
+    // easiest to rearrange these rows to be last in the array
+    const bulkIsSplit = data[9][0] === "Bulk"
+    if (bulkIsSplit) {
+      const bulkRows = data.splice(9, 3)
+      data.push(...bulkRows)
+    }
+    
 
     // Remove first element in every row from row 2 onwards
     for (let i = 0; i < data.length; i++) {
@@ -173,6 +187,8 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
       }
     }
     data[0].splice(0, 1); // also remove first element of header row
+
+    console.log("Processed table data:", data)
 
   // Fetch the template file as ArrayBuffer from the public folder
   try {
@@ -197,13 +213,21 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
 
       // now write the data for this column, starting from row 4
       let j = 0;
-      for (let row = 1; row < data.length; row++) {
+      for (let row = 1; row < data.length - (bulkIsSplit ? 3 : 0); row++) {
         
         if (row % 4 === 1) j++ // increment j every 4 rows, starting from the second row
 
         const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: row+2+j });
         const value = data[row][col].replace(',', ''); // remove commas from numbers
         worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
+      }
+      if (bulkIsSplit) {
+        // write bulk data in the last 3 rows
+        for (let k = 0; k < 3; k++) {
+          const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: 28+k });
+          const value = data[data.length - 3 + k][col].replace(',', '');
+          worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
+        }
       }
     }
     

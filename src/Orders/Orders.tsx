@@ -15,7 +15,7 @@ export default function Orders() {
     return (
         <div className="orders-page">
             <div className="main-content">
-                <Header onImportClick={import_data} showFilters={{layout: false, filter: true, date: true}}/>
+                <Header onImportClick={import_data} showFilters={{filter: true, date: true}}/>
                 <div className="content">
                     <OrdersTable widget={false}/>
                 </div>

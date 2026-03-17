@@ -47,6 +47,12 @@ export default function PickupTimes() {
     });
   }, [search, orders, pickupPlans]);
 
+
+  const isBulk = (order: GroupedOrder) => {
+    const customer = order.customer.toLowerCase();
+    return customer.includes("woolworths") || customer.includes("foodstuffs")
+  };
+
   return (
     <div className="pickup-page">
       <Header />
@@ -146,7 +152,7 @@ export default function PickupTimes() {
               return (
                 <React.Fragment key={order.groupId}>
                   <tr className={highlight && time ? 'highlight' : ''}>
-                    <td>{order.customer}</td>
+                    <td>{order.customer} {isBulk(order) && <span className="pickup-modal-order-badge">{order.orders[0].deliveryNo}</span>}</td>
                     <td>{order.totalPallets}</td>
                     <td>
                       <select

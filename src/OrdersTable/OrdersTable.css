@@ -11,8 +11,7 @@
 
 .order-action-dropdown {
   position: absolute;
-  right: 0;
-  top: 110%;
+  right: 20px;
   min-width: 100px;
   background: var(--bg-panel, #fff);
   border: 1px solid var(--border, #ccc);

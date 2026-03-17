@@ -47,7 +47,7 @@ function Workload() {
     return (
         <div className="workload-page">
             <div className="workload-content">
-                <Header onImportClick={handleSalesImport} showFilters={{layout: false, filter: false, date: true, filetype: '.txt'}}/>
+                <Header onImportClick={handleSalesImport} showFilters={{date: true, filetype: '.txt'}}/>
                 <div className="workload-main">
                     <div className="workload-cards-row">
                         <WorkloadCard title="Current Day" day={currentDay} />

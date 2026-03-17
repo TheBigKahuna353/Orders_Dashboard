@@ -81,13 +81,23 @@ type WorkloadDay = {
   voicePicks: number
 }
 
-type WidgetLayout = {
+type WIDGET_NAMES = "orders" | "sales" | "courier" | "held" | "not-picked"
+
+type DashboardWidget = {
   id: string;
+  type: WIDGET_NAMES;
   col: number;
   row: number;
   colSpan: number;
   rowSpan: number;
 };
+
+type WidgetProps = {
+    id: string;
+    scrollTop?: number
+    isDragging?: boolean
+};
+
 
 type Filter = 'All' | 'All Out of Town' | 'Out of town small' | 'All Locals' | 'Locals small' | 'Bulk';
 

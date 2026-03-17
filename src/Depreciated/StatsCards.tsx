@@ -1,7 +1,7 @@
 import React from 'react'
 import './StatsCards.css'
-import { Droppable } from './Droppable'
-import { Draggable } from './Draggable'
+import { Droppable } from '../Dashboard/Droppable'
+import { Draggable } from '../Dashboard/Draggable'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 

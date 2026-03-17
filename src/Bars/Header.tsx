@@ -1,11 +1,13 @@
-import React, { useRef } from 'react'
+import React, { useRef, type Dispatch, type SetStateAction } from 'react'
 import './Header.css'
+import './HeaderModal.css'
 import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
 import { MdDarkMode, MdLightMode } from 'react-icons/md'
 import { useThemeStore } from '../Stores/ThemeStore';
 import DatePicker from 'react-datepicker';
+import { WIDGETS } from '../Widgets/Widgets';
 
 import "react-datepicker/dist/react-datepicker.css";
 import { useUIStore } from '../Stores/UIStore';
@@ -15,28 +17,28 @@ interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick?: (e: any, importOption: 'clear' | 'overwrite' | 'add') => void;
   onExportClick?: () => void;
+  setEditMode?: Dispatch<SetStateAction<boolean>>
   showFilters?: {
-    layout?: boolean, 
     filter?: boolean, 
     date?: boolean, 
     filetype?: string,
     export?: boolean
+    addWidget?: boolean
   };
 }
 
-const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilters }) => {
+const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMode, showFilters }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
     const [showImportModal, setShowImportModal] = React.useState(false);
     const [importOption, setImportOption] = React.useState<'clear' | 'overwrite' | 'add'>('clear');
     const [pendingFile, setPendingFile] = React.useState<File | null>(null);
+    const [showAddWidgetModal, setShowAddWidgetModal] = React.useState(false);
   const dateRange = useUIStore((s) => s.dateRange)
   const setDateRange = useUIStore((s) => s.setDateRange)
   const currentFilter = useUIStore((s) => s.deliveryFilter)
   const setFilter = useUIStore((s) => s.setDeliveryFilter)
-  const layout = useUIStore((s) => s.dashboardLayout)
-  const setLayout = useUIStore((s) => s.setDashboardLayout)
   const dateMode = useUIStore((s) => s.dateMode)
   const setDateMode = useUIStore((s) => s.setDateMode)
 
@@ -107,6 +109,37 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
             Export
           </button>
         )}
+        {showFilters && showFilters.addWidget && (
+          <>
+            <button onClick={() => setShowAddWidgetModal(true)}>
+              Add Widget
+            </button>
+            {showAddWidgetModal && (
+              <div className="header-widget-modal-overlay">
+                <div className="header-widget-modal-content">
+                  <h2>Select Widget Type</h2>
+                  <ul className="header-widget-modal-list">
+                    {Object.keys(WIDGETS).map(widgetType => (
+                      <li key={widgetType}>
+                        <button
+                          onClick={() => {
+                            useUIStore.getState().addWidget(widgetType as WIDGET_NAMES);
+                            setShowAddWidgetModal(false);
+                          }}
+                          className="header-widget-modal-btn"
+                        >
+                          {widgetType.charAt(0).toUpperCase() + widgetType.slice(1).replace('-', ' ')}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => setShowAddWidgetModal(false)} className="header-widget-modal-cancel">Cancel</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+          
           {/* Import Modal */}
           {showImportModal && (
             <div className="modal-overlay">
@@ -180,12 +213,10 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, showFilte
               </div>
             </div>
           )}
-        {showFilters && showFilters.layout && setLayout && (
-          <Dropdown value={layout} options={
-            [0, 1].map(i => ({ label: `Layout ${i + 1}`, value: i }))
-          } onChange={(e) => setLayout && setLayout(e.value)} 
-          style={{width: "150px", marginRight: "10px"}}
-          />
+        {setEditMode && (
+          <button onClick={() => setEditMode((prev: boolean) => !prev)}>
+            Edit Dashboard
+          </button>
         )}
         <Toast ref={toast} />
         <div>

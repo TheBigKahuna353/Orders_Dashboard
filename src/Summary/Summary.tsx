@@ -149,6 +149,9 @@ export default function Summary() {
             case "dispatch":
                 setDeliveryFilter("All");
                 break;
+            case "bulk":
+                setDeliveryFilter("Bulk");
+                break;
         }
         setDateRange([day, day])
         setDateMode("pick")
@@ -165,6 +168,9 @@ export default function Summary() {
                 break;
             case "dispatch":
                 setDeliveryFilter("All");
+                break;
+            case "bulk":
+                setDeliveryFilter("Bulk");
                 break;
         }
         const startDate = new Date(endDate);
@@ -255,7 +261,7 @@ export default function Summary() {
 
                 <div className="summary-title-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                     <button
-                        style={{ marginRight: 16, padding: '4px 12px', borderRadius: 4, border: '1px solid #bbb', background: showBulk ? '#e3e8f0' : '#fff', cursor: 'pointer' }}
+                        style={{ marginRight: 16, padding: '4px 12px', borderRadius: 4, border: '1px solid #bbb', background: showBulk ? 'var(--panel-bg)' : 'var(--bg-header)', cursor: 'pointer' }}
                         onClick={() => setShowBulk(b => !b)}
                     >
                         {showBulk ? 'Hide Bulk Orders' : 'Show Bulk Orders'}
@@ -354,14 +360,17 @@ export default function Summary() {
                                 {(() => {
                                     let weekIdx = 0;
                                     return data.map(day => {
-                                        const cell = <td key={day.date.getTime()}>{day.bulk.woolworths}</td>;
+                                        const cell = <td key={day.date.getTime()} onClick={() => onClickRow("bulk", day.date)}>{day.bulk.woolworths}</td>;
                                         if (day.date.getDay() === 5 && weekIdx < totals.weekly.length) {
                                             const weekTotal = data
                                                 .filter(d => d.date <= day.date && d.date >= new Date(day.date.getTime() - 4 * 24 * 60 * 60 * 1000))
                                                 .reduce((sum, d) => sum + d.bulk.woolworths, 0);
                                             weekIdx++;
                                             return [cell,
-                                                <td key={"week-total-bulk-ww-" + day.date.getTime()} className="summary-weekly-col summary-total-col">
+                                                <td 
+                                                key={"week-total-bulk-ww-" + day.date.getTime()} 
+                                                className="summary-weekly-col summary-total-col" 
+                                                onClick={() => onClickWeeklyTotal(day.date, "bulk")}>
                                                     <b>{weekTotal}</b>
                                                 </td>
                                             ];
@@ -383,7 +392,10 @@ export default function Summary() {
                                                 .reduce((sum, d) => sum + d.bulk.foodstuffsDunedin, 0);
                                             weekIdx++;
                                             return [cell,
-                                                <td key={"week-total-bulk-fsd-" + day.date.getTime()} className="summary-weekly-col summary-total-col">
+                                                <td 
+                                                    key={"week-total-bulk-fsd-" + day.date.getTime()} 
+                                                    className="summary-weekly-col summary-total-col" 
+                                                    onClick={() => onClickWeeklyTotal(day.date, "bulk")}>
                                                     <b>{weekTotal}</b>
                                                 </td>
                                             ];
@@ -398,14 +410,17 @@ export default function Summary() {
                                 {(() => {
                                     let weekIdx = 0;
                                     return data.map(day => {
-                                        const cell = <td key={day.date.getTime()}>{day.bulk.foodstuffsChristchurch}</td>;
+                                        const cell = <td key={day.date.getTime()} onClick={() => onClickRow("bulk", day.date)}>{day.bulk.foodstuffsChristchurch}</td>;
                                         if (day.date.getDay() === 5 && weekIdx < totals.weekly.length) {
                                             const weekTotal = data
                                                 .filter(d => d.date <= day.date && d.date >= new Date(day.date.getTime() - 4 * 24 * 60 * 60 * 1000))
                                                 .reduce((sum, d) => sum + d.bulk.foodstuffsChristchurch, 0);
                                             weekIdx++;
                                             return [cell,
-                                                <td key={"week-total-bulk-fsc-" + day.date.getTime()} className="summary-weekly-col summary-total-col">
+                                                <td 
+                                                    key={"week-total-bulk-fsc-" + day.date.getTime()} 
+                                                    className="summary-weekly-col summary-total-col" 
+                                                    onClick={() => onClickWeeklyTotal(day.date, "bulk")}>
                                                     <b>{weekTotal}</b>
                                                 </td>
                                             ];
