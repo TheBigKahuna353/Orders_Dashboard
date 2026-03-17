@@ -130,19 +130,22 @@ function sortOrders(
 ): GroupedOrder[] {
     if (!sort || !sort.column) return orders
     const sorted = [...orders].sort((a, b) => {
-        let valA: string | number = a[sort.column as keyof GroupedOrder] as string | number
-        let valB: string | number = b[sort.column as keyof GroupedOrder] as string | number
-        if (typeof valA === "string") valA = valA.toLowerCase()
-        if (typeof valB === "string") valB = valB.toLowerCase()
+        let valA = a[sort.column as keyof GroupedOrder];
+        let valB = b[sort.column as keyof GroupedOrder];
+        // If value is array, use its length
+        if (Array.isArray(valA)) valA = valA.length;
+        if (Array.isArray(valB)) valB = valB.length;
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
         if (!isNaN(Number(valA)) && !isNaN(Number(valB))) {
-            valA = Number(valA)
-            valB = Number(valB)
+            valA = Number(valA);
+            valB = Number(valB);
         }
-        if (valA === undefined || valB === undefined) return 0
-        if (valA < valB) return sort.direction === "asc" ? -1 : 1
-        if (valA > valB) return sort.direction === "asc" ? 1 : -1
-        return 0
-    })
+        if (valA === undefined || valB === undefined) return 0;
+        if (valA < valB) return sort.direction === "asc" ? -1 : 1;
+        if (valA > valB) return sort.direction === "asc" ? 1 : -1;
+        return 0;
+    });
     return sorted
 }
 

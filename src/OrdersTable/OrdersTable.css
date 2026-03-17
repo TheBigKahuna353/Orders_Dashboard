@@ -103,6 +103,12 @@
   font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  user-select: none;
+}
+
+.orders-table th:hover {
+  background-color: var(--table-row-hover);
 }
 
 .orders-table td {

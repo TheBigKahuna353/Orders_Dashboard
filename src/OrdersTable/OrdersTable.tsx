@@ -112,7 +112,7 @@ const OrdersTable: React.FC<props> = ({ scrollTop, widget, isDragging }) => {
               <th onClick={() => setSort(tableID, "totalPallets")}>Total Pallets <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalWeight")}>Weight (kg) <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "totalVolume")}>Volume (m3) <span className="sort-icon">↕️</span></th>
-              <th onClick={() => setSort(tableID, "ordersCount")}># Orders <span className="sort-icon">↕️</span></th>
+              <th onClick={() => setSort(tableID, "orders")}># Orders <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "status")}>Status <span className="sort-icon">↕️</span></th>
               <th onClick={() => setSort(tableID, "deliverDate")}>Delivery Date <span className="sort-icon">↕️</span></th>
               <th>Action</th>

@@ -28,7 +28,7 @@ const Couriers: React.FC<CouriersProps> = ({ id }) => {
               <tr>
                 <th></th>
                 <th onClick={() => setSort(title, "customer")}>Customer</th>
-                <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
+                <th onClick={() => setSort(title, "orders")}># Orders</th>
               </tr>
             </thead>
             <tbody>
