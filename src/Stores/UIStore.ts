@@ -163,6 +163,12 @@ persist(
 
     }),
     {
-        name: "ui-state"
+        name: "ui-state",
+        onRehydrateStorage: () => (state) => {
+            if (!state) return
+            if (typeof state.dashboardLayout === "number") {
+                state.dashboardLayout = DASHBOARD_LAYOUTS[state.dashboardLayout] || DASHBOARD_LAYOUTS[0]
+            }
+        }
     }
 ))
