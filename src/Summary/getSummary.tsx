@@ -1,7 +1,6 @@
 import { useOrdersStore } from "../Stores/OrdersStore"
 import { filterOrder, getPickDate } from "../Data/filter"
 import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
-import { useCustomerStore } from "../Stores/CustomerStore"
 
 export function useDailySummary(month: number, year: number, showBulk: boolean) {
 
@@ -14,7 +13,7 @@ export function useDailySummary(month: number, year: number, showBulk: boolean) 
         if (group.status === "held") {
             continue;
         }
-        const date = toDateOnlyString(getPickDate(group.customer, fromDateOnlyString(group.deliverDate), useCustomerStore.getState().customerMaster));
+        const date = toDateOnlyString(getPickDate(group.customer, fromDateOnlyString(group.deliverDate)));
         if (!date || isNaN(fromDateOnlyString(date).getTime())) {
             console.warn("Invalid date:", group, date);
             continue;

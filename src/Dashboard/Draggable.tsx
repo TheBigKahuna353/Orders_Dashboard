@@ -8,7 +8,9 @@ interface DraggableProps {
   children?: React.ReactNode;
   id: string;
   isMergeTarget?: boolean| null;
+  table?: boolean;
   onClick?: () => void;
+  className?: string;
 }
 
 function Draggable(props: DraggableProps) {
@@ -27,14 +29,24 @@ function Draggable(props: DraggableProps) {
      padding: '0'
   }
   
+  if (props.table) {
+    return (
+      <tr ref={setNodeRef} style={style} data-dnd-id={props.id} className={props.isMergeTarget ? "merge-target" : ""} onClick={props.isMergeTarget ? props.onClick : undefined}>
+        <td style={style2} {...listeners}  {...attributes}>
+          <MdDragIndicator />
+        </td>
+        {props.children}
+      </tr>
+    );
+  }
 
   return (
-    <tr ref={setNodeRef} style={style} data-dnd-id={props.id} className={props.isMergeTarget ? "merge-target" : ""} onClick={props.isMergeTarget ? props.onClick : undefined}>
-      <td style={style2} {...listeners}  {...attributes}>
+    <div ref={setNodeRef} style={style} data-dnd-id={props.id} className={`${props.className || ""} ${props.isMergeTarget ? "merge-target" : ""}`} onClick={props.isMergeTarget ? props.onClick : undefined}>
+      <div style={style2} {...listeners}  {...attributes}>
         <MdDragIndicator />
-      </td>
+      </div>
       {props.children}
-    </tr>
+    </div>
   );
 }
 

@@ -1,18 +1,14 @@
-import OrdersTable from "../OrdersTable/OrdersTable"
 import SalesRep from "./SalesRep"
 import Couriers from "./Couriers"
 import Held from "./Held"
 import NotPicked from "./NotPicked"
 import { useOrdersStore } from "../Stores/OrdersStore"
+import AllOrders from "./AllOrders"
 
-
-const ordersTableHandler: React.FC<WidgetProps> = ({ scrollTop, isDragging }) => {
-  return <OrdersTable scrollTop={scrollTop} widget={true} isDragging={isDragging}/>
-}
 
 
 export const WIDGETS: Record<WIDGET_NAMES, React.FC<WidgetProps>> = {
-    "orders": ordersTableHandler,
+    "orders": AllOrders,
     "sales": SalesRep,
     "courier": Couriers,
     "held": Held,
@@ -37,6 +33,7 @@ export const WIDGET_DROP_HANDLERS: Record<string, (groupId: string) => void> = {
   },
 
   held: (groupId) => {
+    console.log("Holding group", groupId)
     useOrdersStore.getState().holdGroup(groupId, true)
   },
 

@@ -1,10 +1,9 @@
 
 
-export function toDateOnlyString(date: Date): string {
+export function toDateOnlyString(date: Date | string): string {
 
     if (typeof date === "string") {
-        console.warn("toDateOnlyString received a string instead of a Date object:", date)
-        date = new Date(date)
+        return date
     }
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -21,9 +20,13 @@ export function fromDateOnlyString(value: string): Date {
     return new Date(year, month - 1, day)
 
 }
-export function displayDate(date: string): string {
-    const [year, month, day] = date.split("-").map(Number)
-    return `${day}/${month}/${year}`
+export function displayDate(date: string | Date): string {
+    if (typeof date === "string") {
+        const [year, month, day] = date.split("-").map(Number)
+        return `${day}/${month}/${year}`
+    } else {
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+    }
 }
 
 export function addDays(date: string, days: number): string {

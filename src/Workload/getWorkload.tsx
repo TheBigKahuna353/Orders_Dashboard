@@ -68,7 +68,6 @@ function buildBackOrders(
 function buildWorkload(
   lines: SalesOrderLine[],
   masterMap: Record<string, ProductMaster>,
-  customerMaster: Record<string, CustomerMaster>
 ): WorkloadDay[] {
 
   const map = new Map<string, WorkloadDay>()
@@ -84,8 +83,7 @@ function buildWorkload(
     const pickDate = getPickDate(
         line.customer,
         fromDateOnlyString(line.deliveryDate),
-        customerMaster
-    )
+    ) as Date
 
     if (pickDate < today) continue
 
@@ -115,13 +113,12 @@ function buildWorkload(
 
 export function useWorkload() {
   const { salesOrderLines, productMaster } = useOrdersStore();
-  const { customerMaster } = useCustomerStore();
+  const customerMaster = useCustomerStore((s) => s.customerMaster)
 
   return useMemo(() => {
     const workload = buildWorkload(
       salesOrderLines,
       productMaster,
-      customerMaster
     );
 
     // Build Salesorder objects grouped by pick day
@@ -131,7 +128,6 @@ export function useWorkload() {
       const pickDate = getPickDate(
         order.customer,
         fromDateOnlyString(order.deliverDate),
-        customerMaster
       );
       const dayKey = toDateOnlyString(pickDate);
       if (!salesordersByDay[dayKey]) {

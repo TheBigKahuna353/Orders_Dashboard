@@ -15,6 +15,7 @@ import { useUIStore } from '../Stores/UIStore.ts';
 
 import { WIDGET_DROP_HANDLERS, WIDGETS } from '../Widgets/Widgets.tsx';
 import { displayDate } from '../Data/Dates.ts';
+import { GetWidgetById } from '../Layout/Layouts.ts';
 
 const GRID_COLS = 3;
 const GRID_ROWS = 3;
@@ -24,11 +25,10 @@ function Dashboard() {
 
     const { groupedOrders } = useOrdersStore()
 
-    const [cur_order, setCur_Order] = useState<string | null>(null);
+    const [cur_draggable, setCur_Order] = useState<string | null>(null);
     const [activeOrder, setActiveOrder] = useState<GroupedOrder | null>(null);
     const [overlayWidths, setOverlayWidths] = useState<number[]>([]);
-    const [scrollTop, setScrollTop] = useState(0);
-    const [isDragging, setIsDragging] = useState(false)
+
     const [editMode, setEditMode] = useState(false)
     const gridRef = useRef<HTMLDivElement>(null)
 
@@ -40,6 +40,15 @@ function Dashboard() {
     const import_data = async (file: File, importOption: 'clear' | 'overwrite' | 'add') => {
       if ( !file ) return;
       onCSVUpload(file, importOption);
+    }
+
+    const gridStyle: React.CSSProperties = {
+      gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`,
+      gridTemplateRows: `repeat(${GRID_ROWS}, minmax(0, 1fr))`
+    }
+
+    const heightCSS: React.CSSProperties = {
+      height: `${Math.max(100, Math.round(33.33 * GRID_ROWS))}vh`
     }
 
     const showFilters = {
@@ -59,7 +68,8 @@ function Dashboard() {
           setActiveOrder(null)
         }}
         collisionDetection={pointerWithin}>
-          <DragOverlay className='dragOverlay'>
+          <DragOverlay className='dragOverlay'
+            >
           {activeOrder ? (
             <table style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%', height : '100%' }}>
               <tbody>
@@ -88,10 +98,10 @@ function Dashboard() {
         </DragOverlay>
 
 
-        <div className="dashboard">
+        <div className="dashboard" style={heightCSS}>
           <main className="main-content">
             <Header onImportClick={import_data} setEditMode={setEditMode} showFilters={showFilters}/>
-            <div className="dash-content" ref={gridRef}>
+            <div className="dash-content" ref={gridRef} style={gridStyle}>
               {dashboardLayout.map((widget: DashboardWidget) => {
                 if (editMode) {
                   return <GridItem key={widget.id} widget={widget} editMode={editMode} ROW_HEIGHT={rowHeight} COL_WIDTH={columnWidth} />;
@@ -100,7 +110,7 @@ function Dashboard() {
                 // send all props to the widget component, they only accept what they need
                 return (
                   <GridItem key={widget.id} widget={widget}>
-                    <WidgetComponent id={widget.id} scrollTop={scrollTop} isDragging={isDragging} />
+                    <WidgetComponent id={widget.id} />
                   </GridItem>
                 )
                   
@@ -114,6 +124,7 @@ function Dashboard() {
 
     function handleDragEnd(event: any) {
       console.log('Drag ended:', event);
+      
       if (editMode) {
         const {active, delta} = event
 
@@ -132,14 +143,14 @@ function Dashboard() {
       }
       if (event.over) {
           const droppableId = event.over.id
-            console.log(cur_order + ' dropped in droppable with id:', droppableId);
-            const handler = WIDGET_DROP_HANDLERS[droppableId]
-            if (handler && cur_order) {
-              handler(cur_order)
+            console.log(cur_draggable + ' dropped in droppable with id:', droppableId);
+            const w = GetWidgetById(dashboardLayout, droppableId)
+            const handler = WIDGET_DROP_HANDLERS[w?.type as WIDGET_NAMES]
+            if (handler && cur_draggable) {
+              handler(cur_draggable)
             }
             setCur_Order(null);
             setActiveOrder(null);
-            setIsDragging(false)
         }
     }
 
@@ -147,11 +158,10 @@ function Dashboard() {
     function handleDragStart(event: any) {
       const id = event.active.id as string;
       setCur_Order(id);
-      setIsDragging(true)
+      document.body.style.overflow = "hidden"
 
       const order = groupedOrders.find(o => o.groupId === id);
       setActiveOrder(order ?? null);
-      setScrollTop(document.querySelector('.table-container')?.scrollTop || 0);
 
       const row = document.querySelector(
         `tr[data-dnd-id="${id}"]`

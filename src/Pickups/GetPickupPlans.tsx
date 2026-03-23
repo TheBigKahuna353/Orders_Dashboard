@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import { useOrdersStore } from "../Stores/OrdersStore"
 import { getPickDate } from "../Data/filter"
-import { useCustomerStore } from "../Stores/CustomerStore"
 import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
 
 
@@ -12,11 +11,10 @@ import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
 
 export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}[] {
     const { pickupPlans, groupedOrders } = useOrdersStore()
-    const customerMaster = useCustomerStore((s) => s.customerMaster)
 
     return useMemo(() => {
         const pickupPlansForDay = groupedOrders.filter(o => {
-            const pickDate = getPickDate(o.customer, fromDateOnlyString(o.deliverDate), customerMaster)
+            const pickDate = getPickDate(o.customer, o.deliverDate) as Date
             if (pickupPlans[o.groupId] !== undefined) { 
                 return fromDateOnlyString(pickupPlans[o.groupId].date).getTime() === day.getTime() // if plan exists, only include if for the selected day
             }
@@ -41,5 +39,5 @@ export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}
         })
 
         return pickupPlansForDay
-    }, [day, groupedOrders, pickupPlans, customerMaster])
+    }, [day, groupedOrders, pickupPlans])
 }

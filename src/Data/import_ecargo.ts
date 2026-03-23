@@ -84,7 +84,7 @@ function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
         customer = "Foodstuffs " + city
       }
 
-      const groupId = `${customer}-${deliverDate}`
+      const groupId = `${customer.replace(/\s+/g, "-")}-${deliverDate.replace(/\//g, "-")}`
 
       return {
         deliveryNo: row["Consignment "],

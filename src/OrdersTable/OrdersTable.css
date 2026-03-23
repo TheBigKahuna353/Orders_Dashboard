@@ -9,15 +9,20 @@
   position: relative;
 }
 
+.orders-table-content { 
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  /* Remove overflow-x: hidden; */
+}
+
 .order-action-dropdown {
-  position: absolute;
-  right: 20px;
   min-width: 100px;
   background: var(--bg-panel, #fff);
   border: 1px solid var(--border, #ccc);
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  z-index: 10;
   display: flex;
   flex-direction: column;
 }
@@ -36,92 +41,84 @@
 }
 
 
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 16px;
+:root {
+  --orders-grid-columns:
+    20px        /* expand */
+    2fr      /* customer */
+    1fr      /* pallets */
+    1fr      /* weight */
+    1fr       /* volume */
+    1fr        /* orders */
+    1fr       /* Status */
+    1.2fr      /* date */
+    80px;        /* actions */
 }
 
-.table-container {
+[widget="true"] {
+  --orders-grid-columns:
+    20px        /* drag */
+    20px        /* expand */
+    2fr      /* customer */
+    1fr      /* pallets */
+    1fr      /* weight */
+    1fr       /* volume */
+    1fr        /* orders */
+    1fr       /* Status */
+    1.2fr      /* date */
+    80px;        /* actions */
+}
+
+.table-row, .header-row {
+  display: grid;
+  grid-template-columns: var(--orders-grid-columns);
+  border-bottom: 1px solid var(--border);
+  padding-top: 13px;
   background-color: var(--bg-panel);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  overflow-y: auto;
-  overscroll-behavior: none;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
+  scrollbar-gutter: stable;
 }
 
-.orders-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.drag-lock {
-
-  overflow: hidden !important;
-
-  overscroll-behavior: none;
-
-  touch-action: none;
-
-}
-
-.split-btn {
-
-  margin-left: 12px;
-
-  padding: 2px 8px;
-
-  font-size: 12px;
-
-  border-radius: 4px;
-
-  border: 1px solid var(--border-color);
-
-  background: var(--bg-panel);
-
-  cursor: pointer;
-
-}
-
-.split-btn:hover {
-
-  background: var(--accent-color);
-
-  color: white;
-
-}
-
-.orders-table th {
-  background-color: var(--table-header);
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.orders-table td {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-soft);
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.orders-table tbody tr:hover {
+.table-row:hover {
   background-color: var(--table-row-hover);
 }
 
-.orders-table tbody tr:last-child td {
-  border-bottom: none;
+.table-row-col {
+  text-align: left;
+  height: 100%;
+}
+
+.header-row .table-row-col {
+  height: 100%;
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+  
+}
+
+ .table-row-col:hover {
+  background: var(--table-row-hover);
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: var(--orders-grid-columns);
+  background: var(--table-header, #fff);
+  width: max-content;
+  height: max-content;
+  /* Remove overflow-x: hidden; */
+
+  padding-right: 16px; /* Adjust to match your scrollbar width */
+}
+
+/* Ensure the List container allows vertical scroll */
+.orders-table-content > div > div:last-child {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .customer-name {
   font-weight: 500;
+  text-wrap: nowrap;
 }
 
 .sort-icon {
@@ -130,26 +127,6 @@
   opacity: 0.6;
 }
 
-.variance {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.variance.positive {
-  background-color: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-}
-
-.variance.negative {
-  background-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-.variance.neutral {
-  color: #888888;
-}
 
 
 /* table row background */

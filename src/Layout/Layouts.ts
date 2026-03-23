@@ -1,6 +1,5 @@
 
 
-
 export const DASHBOARD_LAYOUTS: DashboardWidget[][] = [[
   { id: '1', type: 'orders', col: 1, row: 1, colSpan: 2, rowSpan: 2 },
   { id: '2', type: 'courier', col: 3, row: 1, colSpan: 1, rowSpan: 1 },
@@ -13,3 +12,7 @@ export const DASHBOARD_LAYOUTS: DashboardWidget[][] = [[
     { id: '4', type: 'held', col: 3, row: 3, colSpan: 1, rowSpan: 1 },
 ]];
 
+export function GetWidgetById(layout: DashboardWidget[], id: string): DashboardWidget | undefined {
+
+  return layout.find(w => w.id === id)
+}

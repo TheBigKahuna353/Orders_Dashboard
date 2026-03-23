@@ -1,4 +1,6 @@
+import { fromDateOnlyString } from "./Dates";
 import { subtractWorkDays } from "./utils";
+import { useCustomerStore } from "../Stores/CustomerStore";
 
 
 export function filterOrder(city: string, customer: string, filter: string): boolean {
@@ -69,22 +71,27 @@ export function getLeadTime(customer: string, city: string): number {
 
 export function getPickDate(
   customer: string,
-  deliverDate: Date,
-  customerMaster: Record<string, CustomerMaster>
+  deliverDate: Date | string,
 ) {
 
-  const master = customerMaster[customer]
-  if (!master) return deliverDate
+    const customerMaster = useCustomerStore.getState().customerMaster
+    const master = customerMaster[customer]
 
-  if (deliverDate.getTime() < new Date('2026-02-01').getTime()) {
-        // oot small have 1 day instead of 2 days lead time before Feb 2026, so we need to handle that as a special case
-        if (filterOrder(master.city, customer, 'Out of town small')) {
-            return subtractWorkDays(deliverDate, 1)
-        }
+    if (!master) return deliverDate
+
+    if (typeof deliverDate === "string") {
+        deliverDate = fromDateOnlyString(deliverDate)
     }
 
-  return subtractWorkDays(
-    deliverDate,
-    master.pickLeadTime
-  )
+    if (deliverDate.getTime() < new Date('2026-02-01').getTime()) {
+            // oot small have 1 day instead of 2 days lead time before Feb 2026, so we need to handle that as a special case
+            if (filterOrder(master.city, customer, 'Out of town small')) {
+                return subtractWorkDays(deliverDate, 1)
+            }
+        }
+
+    return subtractWorkDays(
+        deliverDate,
+        master.pickLeadTime
+    )
 }

@@ -57,3 +57,11 @@ export function AcceptsBackorders(customer: string): boolean {
   const keywords = ["Chemist", "CHEMIST", "CW", "Bargain", "BARGAIN", "BC", "foodstuffs", "Woolworths", "Trents"]
   return !keywords.some(keyword => customer.includes(keyword))
 }
+
+
+export function displayLongText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.slice(0, maxLength) + '...';
+}
