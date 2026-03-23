@@ -35,34 +35,7 @@
   flex: 1;
 }
 
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-}
 
-.stat-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.stat-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.issue-item {
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.issue-item:last-child {
-  border-bottom: none;
-}
 
 
 
@@ -79,6 +52,12 @@
   font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+  user-select: none;
+}
+
+.table th:hover {
+  background-color: var(--table-row-hover);
 }
 
 .table td {

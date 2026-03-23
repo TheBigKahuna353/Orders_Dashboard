@@ -3,15 +3,16 @@ import './StatsCards.css'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 import { displayDate } from '../Data/Dates'
+import { displayLongText } from '../Data/utils'
 
 interface NotPickedProps {
   id: string
 }
 
-const NotPicked: React.FC<NotPickedProps> = () => {
+const NotPicked: React.FC<NotPickedProps> = ({ id }) => {
 
     const title = "Not Picked Orders"
-    const orders = useVisibleOrders(title, (order) => order.status === "picking")
+    const orders = useVisibleOrders(id, (order) => order.status === "picking")
     const setSort = useUIStore(s => s.setTableSort) 
 
     return (
@@ -34,7 +35,7 @@ const NotPicked: React.FC<NotPickedProps> = () => {
                     {orders.map((order) => {
                         return (
                             <tr key={order.groupId}>
-                                <td className="stat-label">{order.customer}</td>
+                                <td className="stat-label">{displayLongText(order.customer, 20)}</td>
                                 <td className="stat-value">{order.orders.length}</td>
                                 <td className="stat-value">{order.totalPallets}</td>
                                 <td className="stat-value">{displayDate(order.deliverDate)}</td>

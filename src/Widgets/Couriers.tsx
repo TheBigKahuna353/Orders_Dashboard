@@ -4,6 +4,8 @@ import { Droppable } from '../Dashboard/Droppable'
 import { Draggable } from '../Dashboard/Draggable'
 import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
+import { displayDate } from '../Data/Dates'
+import { displayLongText } from '../Data/utils'
 
 interface CouriersProps {
   id: string
@@ -26,16 +28,22 @@ const Couriers: React.FC<CouriersProps> = ({ id }) => {
           <table className="table">
             <thead>
               <tr>
-                <th></th>
+                <th style={{width:"20px"}}></th>
                 <th onClick={() => setSort(title, "customer")}>Customer</th>
+                <th onClick={() => setSort(title, "totalWeight")}>Weight</th>
+                <th onClick={() => setSort(title, "totalVolume")}>Volume</th>
+                <th onClick={() => setSort(title, "deliverDate")}>Delivery Date</th>
                 <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order, index) => {
                 return (
-                  <Draggable key={index} id={order.groupId}>
-                    <td className="stat-label">{order.customer}</td>
+                  <Draggable key={index} id={order.groupId} table>
+                    <td className="stat-label">{displayLongText(order.customer, 20)}</td>
+                    <td className="stat-value">{order.totalWeight}</td>
+                    <td className="stat-value">{order.totalVolume}</td>
+                    <td className="stat-value">{displayDate(order.deliverDate)}</td>
                     <td className="stat-value">{order.orders.length}</td>
                   </Draggable>
                 );

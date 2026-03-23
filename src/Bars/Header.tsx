@@ -3,6 +3,7 @@ import './Header.css'
 import './HeaderModal.css'
 import { Dropdown } from 'primereact/dropdown';
 import { FileUpload } from 'primereact/fileupload';
+import { AutoComplete, type AutoCompleteChangeEvent } from 'primereact/autocomplete';
 import { Toast } from 'primereact/toast';
 import { MdDarkMode, MdLightMode } from 'react-icons/md'
 import { useThemeStore } from '../Stores/ThemeStore';
@@ -11,6 +12,9 @@ import { WIDGETS } from '../Widgets/Widgets';
 
 import "react-datepicker/dist/react-datepicker.css";
 import { useUIStore } from '../Stores/UIStore';
+import { useOrdersStore } from '../Stores/OrdersStore';
+
+import { useNavigate } from 'react-router';
 
 
 interface HeaderProps {
@@ -24,6 +28,7 @@ interface HeaderProps {
     filetype?: string,
     export?: boolean
     addWidget?: boolean
+    search?: boolean
   };
 }
 
@@ -41,9 +46,13 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
   const setFilter = useUIStore((s) => s.setDeliveryFilter)
   const dateMode = useUIStore((s) => s.dateMode)
   const setDateMode = useUIStore((s) => s.setDateMode)
+  const [searchTerm, setSearchTerm] = React.useState<string>('');
+  const [suggestions, setSuggestions] = React.useState<GroupedOrder[]>([])
 
   const toast = useRef<Toast>(null);
   const fileRef = useRef<FileUpload>(null);
+  const orders = useOrdersStore(s => s.groupedOrders)
+  const navigate = useNavigate();
 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,7 +66,9 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
 
   const onDateChange = (dates: [Date | null, Date | null]) => {
     setDateRange?.(dates);
-}
+  }
+
+  
 
   const dateType = () => {
 
@@ -98,6 +109,37 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
     )
   }
 
+  function highlight(text: string) {
+  if (!searchTerm) return text
+
+  const i = text.toLowerCase().indexOf(searchTerm.toLowerCase())
+  if (i === -1) return text
+
+  return (
+    <>
+      {text.slice(0, i)}
+      <span className="highlight">
+        {text.slice(i, i + searchTerm.length)}
+      </span>
+      {text.slice(i + searchTerm.length)}
+    </>
+  )
+}
+
+  const search = (event: { query: string }) => {
+    const query = event.query.toLowerCase();
+    const results = orders.filter(order =>
+      order.searchableString.includes(query)
+    );
+    setSuggestions(results.slice(0, 10)); // limit to 10 suggestions
+  }
+
+  const setChange = (e: AutoCompleteChangeEvent<GroupedOrder>) => {
+    if (typeof e.value === 'string') {
+      setSearchTerm(e.value);
+    }
+  };
+
   return (
     <header className="header">
       <div className="header-left">
@@ -108,6 +150,38 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
           <button onClick={() => onExportClick()}>
             Export
           </button>
+        )}
+        {showFilters && showFilters.search && (
+          <div className="header-search">
+            <AutoComplete
+              placeholder="Search..."
+              value={searchTerm}
+              field="customer" // or another property to display
+              suggestions={suggestions}
+              onChange={setChange}
+              completeMethod={search}
+              onSelect={e => {
+                const order = e.value;
+                if (!order) return;
+                navigate(`/group/${order.groupId}`);
+                setSuggestions([])
+                setSearchTerm('')
+              }}
+              itemTemplate={(order) => (
+                <div className="search-item">
+                  <div className="title">{highlight(order?.customer)}</div>
+
+                  <div className="sub">
+                    {highlight(order?.orders.slice(0, 3).map(o => o.deliveryNo).join(", "))}
+                  </div>
+
+                  <div className="meta">
+                    {order?.totalPallets} pallets · {order?.city}
+                  </div>
+                </div>
+              )}
+            />
+          </div>
         )}
         {showFilters && showFilters.addWidget && (
           <>

@@ -54,7 +54,8 @@ function Dashboard() {
     const showFilters = {
       filter: !editMode,
       date: !editMode,
-      addWidget: editMode
+      addWidget: editMode,
+      search: !editMode
     };
 
     return (
