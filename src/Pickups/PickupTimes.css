@@ -139,7 +139,9 @@ input[type="checkbox"]:checked::before {
 }
 
 .hideOnPrint {
-  display: block;
+  @media print {
+    display: none;
+  }
 }
 
 .pickup-page {
@@ -157,9 +159,7 @@ input[type="checkbox"]:checked::before {
     display: none;
   }
 
-  .hideOnPrint {
-    display: none;
-  }
+
 
   input {
     border: none;

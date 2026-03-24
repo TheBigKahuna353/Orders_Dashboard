@@ -134,7 +134,7 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
         return (
           <div style={style} key={order.groupId}>
             <Draggable
-              id={order.groupId}
+              id={order.groupId + ':8'} // adding suffix for number of columns
               isMergeTarget={isMergeTarget}
               className='table-row'
               onClick={() => {
@@ -238,7 +238,7 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
 
   // Table headers
   const headers = (
-    <div className="header-row" style={{minWidth: '100%', width: 'max-content', position: 'sticky', top: 0, zIndex: 2}}>
+    <div className="header-row" style={{minWidth: '100%', width: 'max-content', position: 'sticky', top: 0, zIndex: 2, height: "60px"}}>
       <span className='table-row-col'></span>
       {widget && <span className='table-row-col'></span>}
       <span onClick={() => setSort(id, 'customer')}  className='table-row-col'>Customer</span>
@@ -256,13 +256,14 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
   const unifiedScroll = (
     <div style={{ width: '100%', height: '100%', overflowY: 'hidden' }}>
       <div style={{ minWidth: '100%', width: 'max-content', display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ flex: 1, minHeight: 0, height: '100%', overflowY: 'hidden', overflowX: 'auto', width: '100%' }}>
+        <div style={{ flex: 1, minHeight: 0, height: '80%', overflowY: 'hidden', overflowX: 'auto', width: '100%' }}>
           {headers}
           <List
             rowComponent={Row}
             rowCount={flatRows.length}
             rowHeight={ROW_HEIGHT}
             rowProps={{}}
+            style={{height: "calc(100% - 60px)"}}  // for some reason 60px is the magic number to make it fit perfectly without cutting off the last row or leaving extra space at the bottom
           >
           </List>
         </div>

@@ -25,7 +25,7 @@ const NotPicked: React.FC<NotPickedProps> = ({ id }) => {
                 <table className="table">
                 <thead>
                     <tr>
-                        <th onClick={() => setSort(title, "customer")}>Customer</th>
+                        <th className='customer-name' onClick={() => setSort(title, "customer")}>Customer</th>
                         <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
                         <th onClick={() => setSort(title, "totalPallets")}>Pallets</th>
                         <th onClick={() => setSort(title, "deliverDate")}>Delivery Date</th>

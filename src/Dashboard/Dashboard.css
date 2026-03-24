@@ -25,3 +25,14 @@
 .dragOverlay {
   transition: none !important;
 }
+
+
+
+.dragRow {
+  display: grid;
+  background: var(--bg-panel);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  pointer-events: none;
+  padding: 16px;
+  width: 100%;
+}

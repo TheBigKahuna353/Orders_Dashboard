@@ -4,6 +4,7 @@ import groupOrders from '../Data/GroupOrders'
 import { useCustomerStore } from './CustomerStore'
 import getProductMasterData from '../Data/productMasterData'
 import { deriveStatus } from '../Data/utils'
+import ChangeFormat from '../Data/changeFormat'
 
 type OrdersState = {
     orders: Order[]
@@ -151,6 +152,14 @@ export const useOrdersStore = create<OrdersState>()(
                     state.groupedOrders = groupOrders(state.orders)
                 }
             },
+            version: 0.1,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            migrate: (persistedState:any, version) => {
+                if (version === 0) {
+                    persistedState.orders = ChangeFormat(persistedState.orders)
+                }
+                return persistedState
+            }
         }
     )
 )

@@ -20,7 +20,6 @@ export default function GroupedOrderPage() {
 
   if (!group) return <div>Group not found</div>
 
-
   const orders = group.orders
 
   const totalOrders = orders.length
@@ -30,8 +29,14 @@ export default function GroupedOrderPage() {
 
   const picking = orders.filter(o => o.status === "picking").length
   const ready = orders.filter(o => o.status === "ready").length
+  const held = orders.filter(o => o.status === "held").length
+  const dispatch = orders.filter(o => o.status === "dispatched").length
+  const delivered = orders.filter(o => o.status === "delivered").length
 
   const status =
+    delivered === totalOrders ? "DELIVERED" :
+    dispatch === totalOrders ? "DISPATCHED" :
+    held === totalOrders ? "HELD" :
     picking === totalOrders ? "PICKING" :
     ready === totalOrders ? "READY" :
     "MIXED"
@@ -84,7 +89,7 @@ export default function GroupedOrderPage() {
 
         {/* STATUS */}
         <div className={`status-bar status-${status.toLowerCase()}`}>
-          Status: {status} ({picking} picking, {ready} ready)
+          Status: {status} ({picking} picking, {ready} ready, {held} held, {dispatch} dispatched, {delivered} delivered)
         </div>
 
         {/* TABLE */}

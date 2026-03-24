@@ -39,12 +39,12 @@ const Couriers: React.FC<CouriersProps> = ({ id }) => {
             <tbody>
               {orders.map((order, index) => {
                 return (
-                  <Draggable key={index} id={order.groupId} table>
+                  <Draggable key={index} id={order.groupId+':5'} table>
                     <td className="stat-label">{displayLongText(order.customer, 20)}</td>
                     <td className="stat-value">{order.totalWeight}</td>
                     <td className="stat-value">{order.totalVolume}</td>
-                    <td className="stat-value">{displayDate(order.deliverDate)}</td>
                     <td className="stat-value">{order.orders.length}</td>
+                    <td className="stat-value">{displayDate(order.deliverDate)}</td>
                   </Draggable>
                 );
               })}

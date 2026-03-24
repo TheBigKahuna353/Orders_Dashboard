@@ -38,7 +38,7 @@ const Held: React.FC<HeldProps> = ({ id }) => {
             <tbody>
               {orders.map((order, index) => {
                 return (
-                  <Draggable key={index} id={order.groupId} table>
+                  <Draggable key={index} id={order.groupId+':4'} table>
                     <td className="stat-label">{displayLongText(order.customer, 20)}</td>
                     <td className="stat-value">{order.orders.length}</td>
                     <td className="stat-value">{order.totalVolume}</td>

@@ -53,6 +53,18 @@ export default function PickupTimes() {
     return customer.includes("woolworths") || customer.includes("foodstuffs")
   };
 
+  const pastTime = (time: string) => {
+    if (!time || time === "Next Day") return false;
+    const [hours, minutes] = time.split(":").map(Number);
+    const now = new Date();
+    const nowHours = now.getHours();
+    const nowMinutes = now.getMinutes();
+    if (hours < nowHours || (hours === nowHours && minutes < nowMinutes)) {
+      return true;
+    }
+    return false;
+  }
+
   return (
     <div className="pickup-page">
       <Header />
@@ -151,7 +163,7 @@ export default function PickupTimes() {
               const highlight = rowHighlights[time + ''];
               return (
                 <React.Fragment key={order.groupId}>
-                  <tr className={highlight && time ? 'highlight' : ''}>
+                  <tr className={(highlight && time ? 'highlight' : '') + (pastTime(time) ? ' hideOnPrint' : '')}>
                     <td>{order.customer} {isBulk(order) && <span className="pickup-modal-order-badge">{order.orders[0].deliveryNo}</span>}</td>
                     <td>{order.totalPallets}</td>
                     <td>

@@ -27,7 +27,7 @@ function Dashboard() {
 
     const [cur_draggable, setCur_Order] = useState<string | null>(null);
     const [activeOrder, setActiveOrder] = useState<GroupedOrder | null>(null);
-    const [overlayWidths, setOverlayWidths] = useState<number[]>([]);
+    const [dragCols, setDragCols] = useState<number>(0);
 
     const [editMode, setEditMode] = useState(false)
     const gridRef = useRef<HTMLDivElement>(null)
@@ -72,29 +72,16 @@ function Dashboard() {
           <DragOverlay className='dragOverlay'
             >
           {activeOrder ? (
-            <table style={{ borderCollapse: 'collapse', tableLayout: 'fixed', width: '100%', height : '100%' }}>
-              <tbody>
-                <tr
-                  style={{
-                    background: 'var(--bg-panel)',
-                    boxShadow: '0 6px 16px rgba(0,0,0,0.35)',
-                    pointerEvents: 'none',
-                    padding: 16,
-                  }}
-                >
-                  <td style={{ padding: 0, width: 24 }}>
-                    <MdDragIndicator />
-                  </td>
-                  <td style={{width: overlayWidths[1] || 0}}>{activeOrder.customer}</td>
-                  <td style={{width: overlayWidths[2] || 0}}>{activeOrder.totalPallets}</td>
-                  <td style={{width: overlayWidths[3] || 0}}>{activeOrder.palletsVariance}</td>
-                  <td style={{width: overlayWidths[4] || 0}}>{activeOrder.totalWeight.toLocaleString()}</td>
-                  <td style={{width: overlayWidths[5] || 0}}>{activeOrder.totalVolume}</td>
-                  <td style={{width: overlayWidths[6] || 0}}>{activeOrder.orders.length}</td>
-                  <td style={{width: overlayWidths[7] || 0}}>{displayDate(activeOrder.deliverDate)}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className='dragRow' style={{gridTemplateColumns: `20px repeat(${dragCols}, 1fr)`}}>
+              <MdDragIndicator size={24}/>
+              {dragCols > 0 && <div>{activeOrder.customer}</div>}
+              {dragCols > 5 && <div>{activeOrder.totalPallets}</div>}
+              {dragCols > 4 && <div>{activeOrder.totalWeight}</div>}
+              {dragCols > 3 && <div>{activeOrder.totalVolume}</div>}
+              {dragCols > 2 && <div>{activeOrder.orders.length}</div>}
+              {dragCols > 6 && <div>{activeOrder.status}</div>}
+              {dragCols > 1 && <div>{displayDate(activeOrder.deliverDate)}</div>}
+            </div>
           ) : null}
         </DragOverlay>
 
@@ -132,7 +119,6 @@ function Dashboard() {
         const id = active.id
         const colDelta = Math.round(delta.x / columnWidth)
         const rowDelta = Math.round(delta.y / rowHeight)
-        console.log(`Calculated grid delta - Col: ${colDelta}, Row: ${rowDelta}`)
         const widget = dashboardLayout.find(w => w.id === id)
         if (widget) {
           // cols and rows start at 1, so we need to add 1 to the new position
@@ -157,23 +143,16 @@ function Dashboard() {
 
 
     function handleDragStart(event: any) {
-      const id = event.active.id as string;
+      const [id, cols] = (event.active.id as string).split(':');
       setCur_Order(id);
       document.body.style.overflow = "hidden"
 
       const order = groupedOrders.find(o => o.groupId === id);
       setActiveOrder(order ?? null);
 
-      const row = document.querySelector(
-        `tr[data-dnd-id="${id}"]`
-      ) as HTMLTableRowElement | null;
+      console.log("Drag started for", id, "with cols", cols)
+      setDragCols(parseInt(cols) ?? 0)
 
-      if (row) {
-        const widths = Array.from(row.children).map(
-          (cell) => (cell as HTMLElement).offsetWidth
-        );
-        setOverlayWidths(widths);
-      }
   }
 }
 export default Dashboard
