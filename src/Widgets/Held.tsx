@@ -28,7 +28,7 @@ const Held: React.FC<HeldProps> = ({ id }) => {
           <table className="table">
             <thead>
               <tr>
-                <th style={{width:"20px"}}></th>
+                <th className='dragCol'></th>
                 <th onClick={() => setSort(title, "customer")}>Customer</th>
                 <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
                 <th onClick={() => setSort(title, "totalVolume")}>Volume</th>

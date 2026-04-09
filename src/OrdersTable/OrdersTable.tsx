@@ -197,39 +197,34 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
       const o = row.detailOrder;
       return (
         <div style={style} key={o.deliveryNo}>
-          <tr className="expand-detail-row">
-            <td style={{ padding: 0 }}/>
-            {widget && <td style={{ padding: 0 }}/>} 
-            <td colSpan={7} style={{ padding: 0 }}>
-              <div className={
-                closing.has(row.order.groupId)
-                  ? "expand-wrapper closing"
-                  : "expand-wrapper"
-              }>
-                <div className="expand-content">
-                  <div>Order: {o.deliveryNo}</div>
-                  <div>Pallets: {o.pallets}</div>
-                  <div>Weight: {o.weight}</div>
-                  <div>Volume: {o.volume}</div>
-                  <div>Status: {o.status}</div>
-                  <button onClick={() => splitOrder(o.deliveryNo)}>
-                    Split
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (mergeSourceOrder?.deliveryNo === o.deliveryNo) {
-                        setMergeSourceOrder(null)
-                      } else {
-                        setMergeSourceOrder(o)
-                      }
-                    }}
-                  >
-                    Merge
-                  </button>
-                </div>
-              </div>
-            </td>
-          </tr>
+          <div className={
+            closing.has(row.order.groupId)
+              ? "expand-wrapper closing"
+              : "expand-wrapper"
+          }>
+            <div className="expand-content">
+              <div>Order: {o.deliveryNo}</div>
+              <div>Pallets: {o.pallets}</div>
+              <div>Weight: {o.weight}</div>
+              <div>Volume: {o.volume}</div>
+              <div>Status: {o.status}</div>
+              <div>PO: {o.PO}</div>
+              <button onClick={() => splitOrder(o.deliveryNo)}>
+                Split
+              </button>
+              <button
+                onClick={() => {
+                  if (mergeSourceOrder?.deliveryNo === o.deliveryNo) {
+                    setMergeSourceOrder(null)
+                  } else {
+                    setMergeSourceOrder(o)
+                  }
+                }}
+              >
+                Merge
+              </button>
+            </div>
+          </div>
         </div>
       );
     }

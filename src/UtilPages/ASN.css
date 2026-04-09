@@ -1,0 +1,38 @@
+.asn-table-container {
+  padding: 24px;
+}
+
+.asn-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.asn-table th, .asn-table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.asn-table td {
+  background: var(--bg-panel);
+}
+
+.asn-table th {
+  background: var(--table-header);
+}
+
+.asn-expand-btn {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.asn-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  background: var(--bg-panel);
+}
+
+.asn-details-table th, .asn-details-table td {
+  border: 1px solid var(--border);
+  padding: 6px;
+}

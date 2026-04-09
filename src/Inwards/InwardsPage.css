@@ -1,0 +1,126 @@
+.inwards-content {
+  padding: 20px;
+  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;        /* 👈 instead of height: 100% */
+  min-height: 0;  /* 👈 critical */
+}
+
+.inwards-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.card .label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.card .value {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: left;
+}
+
+/* MAIN GRID */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  min-height: 0; /* 🔥 VERY IMPORTANT */
+}
+
+/* PANELS */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 🔥 VERY IMPORTANT */
+}
+
+.panel-header {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  flex-shrink: 0; /* 🔥 important */
+}
+
+/* LIST */
+.list {
+  overflow-y: auto;
+  height: 100%;
+  min-height: 0; /* 🔥 important */
+  flex: 1;
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.list-row-right {
+  display: grid;
+  grid-template-columns: 140px 1fr 1fr 90px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.list-row:hover {
+  background: var(--table-row-hover);
+}
+
+.list-row.active {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* BAR CHART */
+.bar-wrapper {
+  height: 6px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  background: #3b82f6;
+}
+
+/* TEXT */
+.week {
+  font-size: 13px;
+}
+
+.delivery {
+  font-weight: 500;
+}
+
+.value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

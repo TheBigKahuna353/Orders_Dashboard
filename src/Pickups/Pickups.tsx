@@ -6,8 +6,8 @@ import DatePicker from "react-datepicker"
 import { usePickupPlans } from "./GetPickupPlans"
 import { addDays, toDateOnlyString } from "../Data/Dates"
 
-export default function PickupTimes() {
 
+export default function PickupTimes() {
   const [selectedDate, setSelectedDate] = React.useState(() => {
     const d = new Date();
     d.setHours(0,0,0,0);
@@ -16,27 +16,16 @@ export default function PickupTimes() {
   const [showPopup, setShowPopup] = React.useState(-1);
   const [showAddModal, setShowAddModal] = React.useState(false);
   const [search, setSearch] = React.useState("");
+  const [expandedTimes, setExpandedTimes] = React.useState<{[time: string]: boolean}>({});
   const orders = useOrdersStore(s => s.groupedOrders);
 
   const pickupPlans = usePickupPlans(selectedDate)
   const setPickupPlan = useOrdersStore((s) => s.setPickupPlan)
 
-  //console.log("Pickup plans for", selectedDate, pickupPlans)
 
-  // Group pickupPlans by pickupTime and alternate highlight
-  let lastTime:string|null = null;
-  let highlightToggle = false;
-  const rowHighlights: Record<string, boolean> = {};
-  pickupPlans.forEach(({ plan }) => {
-    const time = plan.pickupTime || '';
-    if (time !== lastTime) highlightToggle = !highlightToggle;
-    rowHighlights[time + ''] = highlightToggle;
-    lastTime = time;
-  });
 
   const searchedOrders = useMemo(() => {
     const lowerSearch = search.toLowerCase();
-
     return orders.filter(order => {
       if (order.searchableString === undefined) {
         console.warn("Order is missing searchableString:", order);
@@ -46,7 +35,6 @@ export default function PickupTimes() {
              (order.searchableString.includes(lowerSearch));
     });
   }, [search, orders, pickupPlans]);
-
 
   const isBulk = (order: GroupedOrder) => {
     const customer = order.customer.toLowerCase();
@@ -64,6 +52,18 @@ export default function PickupTimes() {
     }
     return false;
   }
+
+  // Group pickupPlans by pickupTime
+  const plansByTime = useMemo(() => {
+    const map: {[time: string]: typeof pickupPlans} = {};
+    pickupPlans.forEach(p => {
+      const time = p.plan.pickupTime || '--';
+      if (!map[time]) map[time] = [];
+      map[time].push(p);
+      setExpandedTimes(et => ({ ...et, [time]: et[time] ?? true })) // initialize expanded state for new times
+    });
+    return map;
+  }, [pickupPlans]);
 
   return (
     <div className="pickup-page">
@@ -149,103 +149,124 @@ export default function PickupTimes() {
         <table className="pickup-table print-target">
           <thead>
             <tr>
+              <th>Pickup Time
+              </th>
               <th>Customer</th>
               <th>Pallets</th>
-              <th>Time</th>
               <th>Location</th>
-              <th>Priority</th>
+              <th>Booking</th>
               <th className="hideOnPrint">Action</th>
             </tr>
           </thead>
           <tbody>
-            {pickupPlans.map(({order, plan}, index) => {
-              const time = plan.pickupTime || '';
-              const highlight = rowHighlights[time + ''];
+            {Object.entries(plansByTime).map(([time, plans]) => {
+              const isExpanded = expandedTimes[time] ?? false;
+              // Calculate summary
+              const totalPallets = plans.reduce((sum, p) => sum + p.order.totalPallets, 0);
+              const locations = new Set(plans.map(p => p.plan.location).filter(l => l) as string[]);
               return (
-                <React.Fragment key={order.groupId}>
-                  <tr className={(highlight && time ? 'highlight' : '') + (pastTime(time) ? ' hideOnPrint' : '')}>
-                    <td>{order.customer} {isBulk(order) && <span className="pickup-modal-order-badge">{order.orders[0].deliveryNo}</span>}</td>
-                    <td>{order.totalPallets}</td>
-                    <td>
-                      <select
-                        value={plan.pickupTime || ""}
-                        onChange={e =>
-                          setPickupPlan(order.groupId, {
-                            ...plan,
-                            pickupTime: e.target.value
-                          })
-                        }
+                <React.Fragment key={time}>
+                  <tr style={{ background: 'var(--bg)' }} className={(isExpanded || pastTime(time)) ? 'hideOnPrint' : ''}>
+                    <td colSpan={2}>
+                      <button
+                        style={{ marginRight: 8 }}
+                        onClick={() => setExpandedTimes(et => ({ ...et, [time]: !isExpanded }))}
                       >
-                        <option value="">--</option>
-                        {times.map(t => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
+                        {isExpanded ? 'Hide' : 'Show'} {time === '--' ? 'Unassigned' : time} ({plans.length} order{plans.length > 1 ? 's' : ''})
+                      </button>
+                      <div className="showOnPrint">{time}</div>
                     </td>
                     <td>
-                      <select
-                        value={plan.location || ""}
-                        onChange={e =>
-                          setPickupPlan(order.groupId, {
-                            ...plan,
-                            location: e.target.value as DispatchLane
-                          })
-                        }
-                      >
-                        <option value="">--</option>
-                          {dispatchLaneOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={plan.priority || false}
-                        onChange={e =>
-                          setPickupPlan(order.groupId, {
-                            ...plan,
-                            priority: e.target.checked
-                          })
-                        }
-                      />
-                    </td>
-                    <td className="hideOnPrint">
-                      <button onClick={() => setShowPopup(index)}>Action</button>
-                      {showPopup === index && (
-                        <div style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', zIndex: 1000, padding: 8 }}>
-                          <button
-                            onClick={() => {
-                              // Remove logic: set pickup plan to null/undefined or remove from store
-                              setPickupPlan(order.groupId, {...plan, date: ''});
-                              setShowPopup(-1);
-                            }}
-                            style={{ display: 'block', width: '100%' }}
-                          >Remove</button>
-                          <button
-                            onClick={() => {
-                              // Move to tomorrow logic: increment date by 1 day
-                              const newDate = addDays(plan.date, 1);
-                              setPickupPlan(order.groupId, {
-                                ...plan,
-                                date: newDate
-                              });
-                              setShowPopup(-1);
-                            }}
-                            style={{ display: 'block', width: '100%', marginTop: 4 }}
-                          >Move to Tomorrow</button>
-                          <button
-                            onClick={() => setShowPopup(-1)}
-                            style={{ display: 'block', width: '100%', marginTop: 4 }}
-                          >Cancel</button>
-                        </div>
+                      {!isExpanded && (
+                        <span style={{ fontWeight: 500 }}>
+                          {totalPallets}
+                        </span>
                       )}
                     </td>
+                    <td>
+                      {!isExpanded && (
+                        <span style={{ fontWeight: 500 }}>
+                          {locations.size > 0 ? Array.from(locations).join(', ') : ''} 
+                        </span>
+                      )}
+                    </td>
+                    <td/>
+                    <td className="hideOnPrint"/>
                   </tr>
+                  {isExpanded && plans.map(({ order, plan }, index) => {
+                    return (
+                      <tr key={order.groupId} className={pastTime(time) ? 'hideOnPrint' : ''}>
+                        <td>
+                          <select
+                            value={time}
+                            onChange={e =>
+                              setPickupPlan(order.groupId, {
+                                ...plan,
+                                pickupTime: e.target.value
+                              })
+                            }
+                          >
+                            <option value="">--</option>
+                            {times.map(t => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>{order.customer} {isBulk(order) && <span className="pickup-modal-order-badge">{order.orders[0].deliveryNo}</span>}</td>
+                        <td>{order.totalPallets}</td>
+                        <td>
+                          <select
+                            value={plan.location || ""}
+                            onChange={e =>
+                              setPickupPlan(order.groupId, {
+                                ...plan,
+                                location: e.target.value as DispatchLane
+                              })
+                            }
+                          >
+                            <option value="">--</option>
+                            {dispatchLaneOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td/>
+                        <td className="hideOnPrint">
+                          <button onClick={() => setShowPopup(index)}>Action</button>
+                          {showPopup === index && (
+                            <div style={{ position: 'absolute', background: '#fff', border: '1px solid #ccc', zIndex: 1000, padding: 8 }}>
+                              <button
+                                onClick={() => {
+                                  setPickupPlan(order.groupId, { ...plan, date: '' });
+                                  setShowPopup(-1);
+                                }}
+                                style={{ display: 'block', width: '100%' }}
+                              >Remove</button>
+                              <button
+                                onClick={() => {
+                                  const newDate = addDays(plan.date, 1);
+                                  setPickupPlan(order.groupId, {
+                                    ...plan,
+                                    date: newDate
+                                  });
+                                  setShowPopup(-1);
+                                }}
+                                style={{ display: 'block', width: '100%', marginTop: 4 }}
+                              >Move to Tomorrow</button>
+                              <button
+                                onClick={() => setShowPopup(-1)}
+                                style={{ display: 'block', width: '100%', marginTop: 4 }}
+                              >Cancel</button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </React.Fragment>
-              )
+              );
             })}
           </tbody>
         </table>
@@ -260,7 +281,7 @@ const times = [
     "10:00","10:30","11:00","11:30",
     "12:00","12:30","13:00","13:30",
     "14:00","14:30","15:00","15:30",
-    "16:00","16:30","17:00", "Next Day"
+    "16:00","16:30","17:00"
 ]
 
 const dispatchLaneOptions = [

@@ -18,7 +18,7 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
     // 0 is Sunday, 6 is Saturday
     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
       // public holidays
-      if (!(month === 2 && date === 6) && !(month === 4 && date === 25)) {
+      if (!isPublicHoliday(month, date)) {
         // It's a public holiday, do not count this day
         daysSubtracted++;
         console.warn("subtractWorkDays skipped a public holiday:", newDate.toDateString())
@@ -29,6 +29,17 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
   return newDate;
 }
 
+function isPublicHoliday(month: number, day: number): boolean {
+  // Define public holidays (example dates)
+  const publicHolidays = [
+    { month: 2, day: 6 }, // Waitangi Day
+    { month: 4, day: 25 }, // ANZAC Day
+    { month: 4, day: 3 }, // Easter Friday
+    { month: 4, day: 6 }, // Easter Monday
+  ];
+
+  return publicHolidays.some(holiday => holiday.month === month && holiday.day === day);
+}
 
 export function deriveStatus(comments: string, shipmentNo: string, DeliverStatus: string, held?: boolean): 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered' {
 

@@ -24,7 +24,8 @@ export default function groupOrders(orders: Order[]): GroupedOrder[] {
         palletsVariance: 0,
         deliverDate: order.deliverDate,
         pickupType: order.pickupType,
-        searchableString: `${order.customer} ${order.deliveryNo}`.toLowerCase(),
+        searchableString: `${order.customer} ${order.deliveryNo} ${order.PO}`.toLowerCase(),
+        PO: order.PO,
         })
       }
 

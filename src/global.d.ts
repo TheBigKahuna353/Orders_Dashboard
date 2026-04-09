@@ -7,6 +7,7 @@ type Order = {
   pallets: number
   groupId: string
   deliverDate: string
+  PO: string
 
   status: 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered'
   DeliverStatus?: string
@@ -28,6 +29,7 @@ type GroupedOrder = {
   status: 'picking' | 'held' | 'ready' | 'dispatched' | 'delivered'
   palletsVariance?: number
   deliverDate: string,
+  PO: string
 
   searchableString: string
 
@@ -156,4 +158,25 @@ type PickupPlan = {
   date: string
   location?: DispatchLane
   priority?: boolean
+}
+
+type InboundLine = {
+    deliveryNo: string
+    material: string
+    qty: number
+    checkInDate: string
+}
+
+type InboundDelivery = {
+    d: string
+    m: number
+    q: number
+    c: string
+}
+
+type Asn = {
+    deliveryNo: string
+    material: string
+    qty: number
+    sscc: string
 }

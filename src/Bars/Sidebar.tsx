@@ -11,6 +11,8 @@ const Sidebar: React.FC = () => {
     { icon: '🚚', label: 'Workload', active: location.pathname === '/workload' },
     { icon: '📈', label: 'Summary', active: location.pathname === '/summary' },
     { icon: '🔍', label: 'Cycle Count', active: location.pathname === '/cyclecount' },
+    { icon: '📥', label: 'Inbounds', active: location.pathname === '/inbounds' },
+    { icon: '🛠️', label: 'Utils', active: location.pathname === '/utils' },
     { icon: '⚙️', label: 'Settings', active: false }
   ]
 

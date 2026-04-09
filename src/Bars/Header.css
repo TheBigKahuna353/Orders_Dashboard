@@ -68,6 +68,7 @@
   background-color: var(--bg-header);
   border-bottom: 1px solid var(--border);
   width: 100%;
+  flex-shrink: 0;
 }
 
 .page-title {

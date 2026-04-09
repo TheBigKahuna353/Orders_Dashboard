@@ -15,7 +15,8 @@ import './App.css'
 import CycleCount from './CycleCount/CycleCount';
 import PickupTimes from './Pickups/Pickups';
 import GroupedOrderPage from './ViewOrders/GroupedOrderPage';
-
+import InboundPage from './Inwards/InwardsPage';
+import UtilsPage from './UtilPages/homepage';
 
 export default function App() {
 
@@ -40,6 +41,9 @@ export default function App() {
           <Route path="/cyclecount" element={<CycleCount />} />
           <Route path="/pickups" element={<PickupTimes />} />
           <Route path="/group/:id" element={<GroupedOrderPage />} />
+          <Route path="/inbounds" element={<InboundPage />} />
+          <Route path="/utils" element={<UtilsPage />} />
+
         </Routes>
       </div>
       </HashRouter>

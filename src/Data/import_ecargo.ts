@@ -57,6 +57,7 @@ function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
       DeliverStatus: row["DeliverStatus"]?.trim() || "",
       shipmentNo: row["Manifest"]?.trim() || "",
       pickupType: "delivery",
+      PO: row["PurchaseOrderNumber"]?.trim() || "",
     }
   })
 }
@@ -100,6 +101,7 @@ function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
         shipmentNo: row["Manifest"]?.trim() || "",
         DeliverStatus: row["Status"]?.trim() || "",
         pickupType: "delivery",
+        PO: row["PO Number"]?.trim() || "",
       }
     })
     .filter((order): order is Order => !!order && Object.keys(order).length > 0) // filter out nulls and empty objects from skipped rows
