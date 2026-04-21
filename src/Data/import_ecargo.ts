@@ -1,7 +1,6 @@
 import Papa from "papaparse"
 import { useOrdersStore } from "../Stores/OrdersStore"
 import { toDateOnlyString } from "./Dates"
-import { useCustomerStore } from "../Stores/CustomerStore"
 import { parseExcelToRows } from "./Excel"
 import { deriveStatus } from "./utils"
 
@@ -148,11 +147,10 @@ export async function onCSVUpload(
     if (importType === "overwrite") {
       upsertOrders(parsedOrders)
     } else if (importType === "clear") {
-      setOrders(parsedOrders)
+      setOrders(parsedOrders, 0) // set timestamp to 0 to force overwrite on server
     } else {
-      setOrders([])
+      setOrders([], 0)  // TODO implement function, this is a place holder and currently unreachable
     }
-    useCustomerStore.getState().upsertCustomersFromOrders(parsedOrders)
     console.log("Imported orders:", parsedOrders)
   } catch (err) {
     console.error("CSV import failed on row", indexDebug, err)

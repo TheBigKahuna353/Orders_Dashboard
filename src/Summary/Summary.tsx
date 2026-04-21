@@ -67,7 +67,7 @@ export default function Summary() {
     const [showBulk, setShowBulk] = React.useState(true);
 
     const handleExport = () => {
-        exportTableToExcel('summary-table', 'SummaryTable.xlsx');
+        exportTableToExcel('summary-table', month, year, 'SummaryTable.xlsx');
     };
     const [hoveredCategory, setHoveredCategory] = React.useState<string | null>(null);
 

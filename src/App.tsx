@@ -18,7 +18,13 @@ import GroupedOrderPage from './ViewOrders/GroupedOrderPage';
 import InboundPage from './Inwards/InwardsPage';
 import UtilsPage from './UtilPages/homepage';
 
+import { onPageLoad } from './Data/server';
+
 export default function App() {
+
+  useEffect(() => {
+    onPageLoad();
+  }, []);
 
 
   const theme = useThemeStore((s) => s.theme)
@@ -29,7 +35,7 @@ export default function App() {
   }, [theme])
 
   return (
-      <HashRouter basename='/'>
+    <HashRouter basename='/'>
       <div className="app-container">
         <SideBar />
         <Routes>
@@ -46,7 +52,7 @@ export default function App() {
 
         </Routes>
       </div>
-      </HashRouter>
+    </HashRouter>
   );
 }
 

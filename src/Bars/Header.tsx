@@ -37,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
     const [showImportModal, setShowImportModal] = React.useState(false);
-    const [importOption, setImportOption] = React.useState<'clear' | 'overwrite' | 'add'>('clear');
+    const [importOption, setImportOption] = React.useState<'clear' | 'overwrite' | 'add'>('overwrite');
     const [pendingFile, setPendingFile] = React.useState<File | null>(null);
     const [showAddWidgetModal, setShowAddWidgetModal] = React.useState(false);
   const dateRange = useUIStore((s) => s.dateRange)

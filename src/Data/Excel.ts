@@ -1,6 +1,8 @@
+import { useOrdersStore } from "../Stores/OrdersStore"
 import * as XLSX from 'xlsx-js-style'
 import { useCycleCountStore } from "../Stores/CycleCountStore"
 import { toDateOnlyString } from "./Dates"
+import { getPickDate } from "./filter";
 
 const SUMMARY_RANGES = [
   "E5:I8",
@@ -158,7 +160,7 @@ export async function parseExcelToRows(file: File): Promise<string[][]> {
    * @param tableId The id of the table element in the DOM
    * @param filename The filename for the downloaded Excel file
    */
-export async function exportTableToExcel(tableId: string, filename = 'table.xlsx') {
+export async function exportTableToExcel(tableId: string, month: number, year: number, filename = 'table.xlsx') {
     const table = document.getElementById(tableId);
     if (!table) {
       console.error('Table not found:', tableId);
@@ -233,10 +235,62 @@ export async function exportTableToExcel(tableId: string, filename = 'table.xlsx
     
     SUMMARY_RANGES.forEach(r => addOuterBorder(worksheet, r))
 
+    addOrderSheetsToWorkbook(
+      template, 
+      month,
+      year
+    ) 
+
     //console.log(data)
     // You may want to trigger a download here
     XLSX.writeFile(template, filename);
   } catch (err) {
     console.error('Error fetching or processing template.xlsx:', err);
   }
+}
+
+
+
+
+/**
+ * Adds a new sheet for each day, containing all orders for that day within a date range, to the given workbook.
+ * @param wb The XLSX workbook object to append sheets to
+ * @param startDate The start date (inclusive) as a Date or string (YYYY-MM-DD)
+ * @param endDate The end date (inclusive) as a Date or string (YYYY-MM-DD)
+ */
+export function addOrderSheetsToWorkbook(
+  wb: XLSX.WorkBook,
+  month: number,
+  year: number
+) {
+  // Get all orders from the store (now a hashmap)
+  const ordersObj = useOrdersStore.getState().orders;
+  const orders = Object.values(ordersObj);
+  if (!orders || orders.length === 0) return;
+
+  // Normalize date range
+  const start = new Date(year, month - 1, 1)
+  const end = new Date(year, month, 0) // last day of the month
+
+  console.log(`Adding order sheets for orders between ${toDateOnlyString(start)} and ${toDateOnlyString(end)}`)
+
+  // Group orders by day, filtering by date range
+  const ordersByDay: Record<string, Order[]> = {};
+  orders.forEach(order => {
+    const orderDate = getPickDate(order.customer, order.deliverDate) as Date;
+
+    if (orderDate < start || orderDate > end) return;
+    const dateStr = toDateOnlyString(orderDate);
+    if (!ordersByDay[dateStr]) ordersByDay[dateStr] = [];
+    ordersByDay[dateStr].push(order);
+  });
+
+  // For each day, create a sheet
+  Object.entries(ordersByDay).forEach(([day, orders]) => {
+    // Use all keys from the first order as columns
+    const columns = orders.length > 0 ? Object.keys(orders[0]) as (keyof Order)[] : [];
+    const sheetData = [columns, ...orders.map(order => columns.map(col => order[col]))];
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(wb, ws, `${day}`);
+  });
 }

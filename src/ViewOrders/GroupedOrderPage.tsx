@@ -100,6 +100,7 @@ export default function GroupedOrderPage() {
               <tr>
                 <th>Delivery</th>
                 <th>Pallets</th>
+                <th>PO</th>
                 <th>Weight</th>
                 <th>Volume</th>
                 <th>Status</th>
@@ -122,6 +123,7 @@ export default function GroupedOrderPage() {
                     >
                       <td>{order.deliveryNo}</td>
                       <td>{order.pallets}</td>
+                      <td>{order.PO}</td>
                       <td>{order.weight}</td>
                       <td>{order.volume}</td>
                       <td>{order.status}</td>

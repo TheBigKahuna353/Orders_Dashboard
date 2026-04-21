@@ -5,14 +5,16 @@ import { useCustomerStore } from './CustomerStore'
 import getProductMasterData from '../Data/productMasterData'
 import { deriveStatus } from '../Data/utils'
 import ChangeFormat from '../Data/changeFormat'
+import { sendNewOrders, sendOrders, updateSinglePickup } from '../Data/server'
 
 type OrdersState = {
-    orders: Order[]
+    orders: Record<string, Order>
+    ordersTimestamp: number
     groupedOrders: GroupedOrder[]
     salesOrderLines: SalesOrderLine[]
     productMaster: Record<string, ProductMaster>
 
-    setOrders: (orders: Order[]) => void
+    setOrders: (orders: Order[], time: number) => void
     upsertOrders: (orders: Order[]) => void
     setSalesOrderLines: (lines: SalesOrderLine[]) => void
     setProductMaster: (master: Record<string, ProductMaster>) => void
@@ -24,6 +26,8 @@ type OrdersState = {
 
     pickupPlans: Record<string, PickupPlan>
     setPickupPlan: (groupId: string, plan: PickupPlan) => void
+    setPickups: (plans: PickupPlan[], time: number) => void
+    pickupPlansTimestamp: number
 
 }
 
@@ -31,32 +35,40 @@ type OrdersState = {
 export const useOrdersStore = create<OrdersState>()(
     persist(
         (set, get) => ({
-        orders: [],
+        orders: {},
+        ordersTimestamp: 0,
         groupedOrders: [],
         productMaster: getProductMasterData(),
         pickupPlans: {},
-
-        setOrders: (orders) => // when setting orders directly, we assume it's a full replacement (e.g. from file import with "clear" option)
+        pickupPlansTimestamp: 1,
+        
+        // if timestamp is provided, its from server, else we assume it's a local update and set timestamp to now and send to server
+        setOrders: (ordersArr, time) => {
+            const orders = Object.fromEntries(ordersArr.map(order => [order.deliveryNo, order]))
+            useCustomerStore.getState().upsertCustomersFromOrders(Object.values(orders))
+            if (!time) {
+                sendOrders(Object.values(orders)).then(serverTime => {
+                    set({
+                        orders,
+                        groupedOrders: groupOrders(Object.values(orders)),
+                        ordersTimestamp: serverTime,
+                    })
+                })
+                return;
+            }
             set({
                 orders,
-                groupedOrders: groupOrders(orders),
-            }),
+                groupedOrders: groupOrders(Object.values(orders)),
+                ordersTimestamp: time,
+            })
+        },
 
-        upsertOrders: (incoming) => { // when upserting, we merge with existing orders to preserve local-only fields like hold status and pickup type
+        upsertOrders: (incomingArr) => {
             const existing = get().orders
-            const map = new Map(existing.map(o => [o.deliveryNo, o]))
-
-            for (const order of incoming) {
-                const current = map.get(order.deliveryNo)
-
-                if (!current) {
-                    // new order
-                    map.set(order.deliveryNo, order)
-                    continue
-                }
-
-                // merge imported fields but keep local overrides
-                map.set(order.deliveryNo, {
+            const orders = { ...existing }
+            for (const order of incomingArr) {
+                const current = orders[order.deliveryNo]
+                orders[order.deliveryNo] = {
                     ...current,
 
                     // fields controlled by TMS
@@ -65,18 +77,25 @@ export const useOrdersStore = create<OrdersState>()(
                     pallets: order.pallets,
                     DeliverStatus: order.DeliverStatus,
                     comments: order.comments,
+                    shipmentNo: order.shipmentNo,
+                    PO: order.PO, // old values might have them missing, so we want to update if present in incoming data
 
                     // allow date correction if TMS changed
                     deliverDate: order.deliverDate,
-                })
+
+                    // fields derived from other fields, we recalculate those rather than trusting incoming data
+                    status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", current.status === "held"),
+                }
             }
-            const merged = Array.from(map.values())
-            console.log("Upserting orders. Incoming:", incoming.length, "Existing:", existing.length, "Merged:", merged.length)
-            set({
-                orders: merged,
-                groupedOrders: groupOrders(merged),
+            const mergedArr = Object.values(orders)
+            sendNewOrders(mergedArr).then(serverTime => {
+                set({
+                    orders,
+                    groupedOrders: groupOrders(mergedArr),
+                    ordersTimestamp: serverTime,
+                })
             })
-            useCustomerStore.getState().upsertCustomersFromOrders(merged)
+            useCustomerStore.getState().upsertCustomersFromOrders(mergedArr)
         },
 
         salesOrderLines: [],
@@ -85,60 +104,98 @@ export const useOrdersStore = create<OrdersState>()(
         setProductMaster: (productMaster) => set({ productMaster }),
 
 
-        splitOrder: (orderId: string) =>
+        splitOrder: (orderId: string) => {
             set((state) => {
                 let groupId;
-                const hash = Date.now()
-                const orders = state.orders.map(order => {
-                    if (order.deliveryNo !== orderId) return order
-                    groupId = order.groupId
-                    return {
+                const hash = Date.now();
+                const orders = { ...state.orders };
+                const order = orders[orderId];
+                let changed = false;
+                if (order) {
+                    groupId = order.groupId;
+                    orders[orderId] = {
                         ...order,
                         groupId: `${groupId}-${hash}`
-                    }
-                })
-                return { orders, groupedOrders: groupOrders(orders) }
-            }),
-
-        joinOrders: (sourceOrderId: string, targetGroupId: string) =>
-            set((state) => {
-                const orders = state.orders.map(order =>
-                    order.deliveryNo === sourceOrderId
-                        ? { ...order, groupId: targetGroupId }
-                        : order
-                    )
-                console.log("Joining orders", sourceOrderId, "into", targetGroupId)
-                return { orders, groupedOrders: groupOrders(orders) }
-            }),
-
-        holdGroup: (groupId: string, held: boolean, reason?: "backorder" | "small_order") =>
-            set((state) => {
-                const orders = state.orders.map(order => 
-                    order.groupId === groupId
-                        ? { ...order, 
-                            status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", held), 
-                            holdReason: reason }
-                        : order
-                )
-                return { orders, groupedOrders: groupOrders(orders) }
-            }),
-
-        changePickupType: (groupId: string, pickupType: "courier" | "pickup" | "delivery") =>
-            set((state) => {
-                const orders = state.orders.map(order =>
-                    order.groupId === groupId
-                        ? { ...order, pickupType }
-                        : order
-                )
-                return { orders, groupedOrders: groupOrders(orders) }
-            }),
-        setPickupPlan: (groupId: string, plan: PickupPlan) =>
-            set(state => ({
-                pickupPlans: {
-                ...state.pickupPlans,
-                [groupId]: plan
+                    };
+                    changed = true;
                 }
-            })),
+                if (changed) {
+                    sendNewOrders(Object.values(orders));
+                }
+                return { orders, groupedOrders: groupOrders(Object.values(orders)) };
+            });
+        },
+
+        joinOrders: (sourceOrderId: string, targetGroupId: string) => {
+            set((state) => {
+                const orders = { ...state.orders };
+                let changed = false;
+                if (orders[sourceOrderId]) {
+                    orders[sourceOrderId] = { ...orders[sourceOrderId], groupId: targetGroupId };
+                    changed = true;
+                }
+                if (changed) {
+                    sendNewOrders(Object.values(orders));
+                }
+                console.log("Joining orders", sourceOrderId, "into", targetGroupId);
+                return { orders, groupedOrders: groupOrders(Object.values(orders)) };
+            });
+        },
+
+        holdGroup: (groupId: string, held: boolean, reason?: "backorder" | "small_order") => {
+            set((state) => {
+                const orders = { ...state.orders };
+                let changed = false;
+                for (const key in orders) {
+                    if (orders[key].groupId === groupId) {
+                        orders[key] = {
+                            ...orders[key],
+                            status: deriveStatus(orders[key].comments, orders[key].shipmentNo ?? "", orders[key].DeliverStatus ?? "", held),
+                            holdReason: reason
+                        };
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    sendNewOrders(Object.values(orders));
+                }
+                return { orders, groupedOrders: groupOrders(Object.values(orders)) };
+            });
+        },
+
+        changePickupType: (groupId: string, pickupType: "courier" | "pickup" | "delivery") => {
+            set((state) => {
+                const orders = { ...state.orders };
+                let changed = false;
+                for (const key in orders) {
+                    if (orders[key].groupId === groupId) {
+                        orders[key] = { ...orders[key], pickupType };
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    sendNewOrders(Object.values(orders));
+                }
+                return { orders, groupedOrders: groupOrders(Object.values(orders)) };
+            });
+        },
+
+        setPickupPlan: (groupId: string, plan: PickupPlan) => {// used by GUI, dont need to check if from server
+            updateSinglePickup(plan).then(serverTime => {
+                set(state => ({
+                    pickupPlans: {
+                    ...state.pickupPlans,
+                    [groupId]: plan
+                    },
+                    pickupPlansTimestamp: serverTime
+                })
+            )})},
+
+        setPickups: (plans: PickupPlan[], time: number) => // Internal, onyl used when fetching full pickup plans from server
+            set(({
+                pickupPlans: plans.reduce((acc, plan) => ({ ...acc, [plan.groupId]: plan }), {}),
+                pickupPlansTimestamp: time
+            }))
         }),
         {
             name: 'orders-storage',
@@ -146,17 +203,31 @@ export const useOrdersStore = create<OrdersState>()(
                 orders: state.orders,
                 salesOrderLines: state.salesOrderLines,
                 pickupPlans: state.pickupPlans,
+                ordersTimestamp: state.ordersTimestamp
             }),
             onRehydrateStorage: () => (state) => {
                 if (state?.orders) {
-                    state.groupedOrders = groupOrders(state.orders)
+                    state.groupedOrders = groupOrders(Object.values(state.orders))
                 }
             },
-            version: 0.1,
+            version: 0.3,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             migrate: (persistedState:any, version) => {
-                if (version === 0) {
-                    persistedState.orders = ChangeFormat(persistedState.orders)
+                switch(version) {
+                    case 0:
+                        persistedState.orders = ChangeFormat(persistedState.orders);
+                    // falls through
+                    case 0.1: // in version 0.1, we didnt derive status after updating other fields
+                        persistedState.orders = persistedState.orders.map((order: Order) => ({
+                            ...order,
+                            status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", order.status === "held"),
+                        }))
+                    // falls through
+                    case 0.2: // in version 0.2, orders were stored as array, we change to object for faster access
+                        persistedState.orders = Object.fromEntries(persistedState.orders.map((order: Order) => [order.deliveryNo, order]))
+                    // falls through
+                    case 0.3: // in version 0.3, we might have additional changes
+                        // No changes needed for this version
                 }
                 return persistedState
             }

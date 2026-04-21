@@ -21,7 +21,6 @@ export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date 
       if (!isPublicHoliday(month, date)) {
         // It's a public holiday, do not count this day
         daysSubtracted++;
-        console.warn("subtractWorkDays skipped a public holiday:", newDate.toDateString())
       }
     }
   }

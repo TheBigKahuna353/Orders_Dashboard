@@ -1,0 +1,45 @@
+.po-search-container {
+  padding: 24px;
+}
+
+.po-search-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.po-search-input {
+  flex: 1;
+  padding: 8px;
+  font-size: 1rem;
+}
+
+.po-search-btn {
+  padding: 8px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.po-search-results {
+  margin-top: 16px;
+}
+
+.po-search-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel);
+}
+
+.po-search-table th, .po-search-table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.po-search-row:hover {
+    background: var(--table-row-hover);
+    cursor: pointer;
+}
+
+.po-search-table th {
+  background: var(--table-header);
+}
