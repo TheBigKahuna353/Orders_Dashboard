@@ -132,6 +132,7 @@ function Dashboard() {
           const droppableId = event.over.id
             console.log(cur_draggable + ' dropped in droppable with id:', droppableId);
             const w = GetWidgetById(dashboardLayout, droppableId)
+            console.log("Dropping on widget:", w)
             const handler = WIDGET_DROP_HANDLERS[w?.type as WIDGET_NAMES]
             if (handler && cur_draggable) {
               handler(cur_draggable)

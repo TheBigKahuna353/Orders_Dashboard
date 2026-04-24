@@ -25,6 +25,10 @@ export const useCustomerStore = create<CustomerState>()(
                     const updated = { ...state.customerMaster }
 
                     for (const order of orders) {
+                        if (!order.customer || !order.city) {
+                            console.warn("Skipping order with missing customer or city:", order)
+                            continue
+                        }
                         if (!updated[order.customer]) {
                             console.log("adding customer to master", order.customer)
 

@@ -128,7 +128,6 @@ export async function onCSVUpload(
   try {
     const format = await detectFormat(file)
     const rows = await parseCsvFile(file, format)
-    console.log("Parsed CSV Rows:", rows) // log parsed rows for debugging
     let parsedOrders: Order[] = []
 
     if (format === "formatA") {
@@ -143,6 +142,8 @@ export async function onCSVUpload(
       alert("No valid orders found in the file")
       return
     }
+
+    console.log(`Parsed orders from ${format}:`, parsedOrders)
 
     if (importType === "overwrite") {
       upsertOrders(parsedOrders)

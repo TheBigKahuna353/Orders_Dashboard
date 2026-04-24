@@ -92,7 +92,7 @@ export async function OnSAPUpload(file: File, importOption: 'clear' | 'overwrite
     console.log(sizeKBDeliveries.toFixed(2) + " KB")  
 
     if (importOption === 'clear') {
-        setInboundDeliveries(deliveries);
+        setInboundDeliveries(deliveries, 0); // timestamp 0 indicates this is a fresh import that should overwrite server data
     }
     else if (importOption === 'overwrite') {
         // For simplicity, treat overwrite same as clear in this example

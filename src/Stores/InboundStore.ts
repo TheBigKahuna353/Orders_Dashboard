@@ -1,5 +1,7 @@
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { sendInbound, updateInbound } from '../Data/server'
 
 
 
@@ -8,27 +10,44 @@ import { persist } from 'zustand/middleware'
 type InboundState = {
     deliveries: InboundDelivery[]
     upsertInboundDeliveries: (deliveries: InboundDelivery[]) => void
-    setInboundDeliveries: (deliveries: InboundDelivery[]) => void
+    setInboundDeliveries: (deliveries: InboundDelivery[], timestamp: number) => void
+    timestamp: number
 }
 
 export const useInboundStore = create<InboundState>()(
     persist(
         (set) => ({
             deliveries: [],
-            upsertInboundDeliveries: (deliveries: InboundDelivery[]) =>
-                set((state: InboundState) => {            
+            timestamp: 1,
+            upsertInboundDeliveries: (deliveries: InboundDelivery[]) => {
+                updateInbound(deliveries).then(serverTime => {
+                    set((state: InboundState) => {            
                     const updated = [...state.deliveries, ...deliveries]
-                    return { deliveries: updated }
-                }),
-            setInboundDeliveries: (deliveries: InboundDelivery[]) =>
+                    return { deliveries: updated, timestamp: serverTime }
+                })})   
+                },
+
+            setInboundDeliveries: (deliveries: InboundDelivery[], timestamp: number) => {
+                if (!timestamp) {
+                    sendInbound(deliveries).then(serverTime => {
+                        set(() => ({
+                            deliveries,
+                            timestamp: serverTime
+                        }))
+                    })
+                    return
+                }
                 set(() => ({
-                    deliveries
+                    deliveries,
+                    timestamp
                 }))
+            }
         }),
         {
              name: 'Inbound-storage',
                 partialize: (state) => ({
-                    deliveries: state.deliveries
+                    deliveries: state.deliveries,
+                    timestamp: state.timestamp
                 }),
         }
     )

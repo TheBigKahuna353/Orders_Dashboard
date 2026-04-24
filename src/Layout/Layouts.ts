@@ -13,6 +13,5 @@ export const DASHBOARD_LAYOUTS: DashboardWidget[][] = [[
 ]];
 
 export function GetWidgetById(layout: DashboardWidget[], id: string): DashboardWidget | undefined {
-
   return layout.find(w => w.id === id)
 }

@@ -66,8 +66,10 @@ export const useOrdersStore = create<OrdersState>()(
         upsertOrders: (incomingArr) => {
             const existing = get().orders
             const orders = { ...existing }
+            const updated: Order[] = []
             for (const order of incomingArr) {
-                const current = orders[order.deliveryNo]
+                const current = orders[order.deliveryNo] ? orders[order.deliveryNo] : order
+                const held = current?.status === "held" || order.status === "held"
                 orders[order.deliveryNo] = {
                     ...current,
 
@@ -84,18 +86,19 @@ export const useOrdersStore = create<OrdersState>()(
                     deliverDate: order.deliverDate,
 
                     // fields derived from other fields, we recalculate those rather than trusting incoming data
-                    status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", current.status === "held"),
+                    status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", held),
                 }
+                updated.push(orders[order.deliveryNo])
             }
             const mergedArr = Object.values(orders)
-            sendNewOrders(mergedArr).then(serverTime => {
+            sendNewOrders(updated).then(serverTime => { // dont need to send full orders array, just the updated orders, server will merge and return new timestamp
                 set({
                     orders,
                     groupedOrders: groupOrders(mergedArr),
                     ordersTimestamp: serverTime,
                 })
             })
-            useCustomerStore.getState().upsertCustomersFromOrders(mergedArr)
+            useCustomerStore.getState().upsertCustomersFromOrders(updated)
         },
 
         salesOrderLines: [],
@@ -146,6 +149,7 @@ export const useOrdersStore = create<OrdersState>()(
             set((state) => {
                 const orders = { ...state.orders };
                 let changed = false;
+                const updated = [];
                 for (const key in orders) {
                     if (orders[key].groupId === groupId) {
                         orders[key] = {
@@ -153,11 +157,12 @@ export const useOrdersStore = create<OrdersState>()(
                             status: deriveStatus(orders[key].comments, orders[key].shipmentNo ?? "", orders[key].DeliverStatus ?? "", held),
                             holdReason: reason
                         };
+                        updated.push(orders[key]);
                         changed = true;
                     }
                 }
                 if (changed) {
-                    sendNewOrders(Object.values(orders));
+                    sendNewOrders(updated);
                 }
                 return { orders, groupedOrders: groupOrders(Object.values(orders)) };
             });
@@ -167,14 +172,16 @@ export const useOrdersStore = create<OrdersState>()(
             set((state) => {
                 const orders = { ...state.orders };
                 let changed = false;
+                const updated = [];
                 for (const key in orders) {
                     if (orders[key].groupId === groupId) {
                         orders[key] = { ...orders[key], pickupType };
                         changed = true;
+                        updated.push(orders[key]);
                     }
                 }
                 if (changed) {
-                    sendNewOrders(Object.values(orders));
+                    sendNewOrders(updated);
                 }
                 return { orders, groupedOrders: groupOrders(Object.values(orders)) };
             });
@@ -203,7 +210,8 @@ export const useOrdersStore = create<OrdersState>()(
                 orders: state.orders,
                 salesOrderLines: state.salesOrderLines,
                 pickupPlans: state.pickupPlans,
-                ordersTimestamp: state.ordersTimestamp
+                ordersTimestamp: state.ordersTimestamp,
+                pickupPlansTimestamp: state.pickupPlansTimestamp
             }),
             onRehydrateStorage: () => (state) => {
                 if (state?.orders) {

@@ -268,7 +268,7 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
 
   if (widget) {
     return (
-      <Droppable id="orders">
+      <Droppable id={id} >
         <div className="orders-table-content" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
           {unifiedScroll}
         </div>

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useOrdersStore } from '../Stores/OrdersStore';
+import { useInboundStore } from '../Stores/InboundStore';
 
 const DEBUG_SERVER = false;
 const API_URL = (import.meta.env.DEV && !DEBUG_SERVER) ? 'http://localhost:4941/api/v1/dashboard' : 'https://webserver-aekg.onrender.com/api/v1/dashboard';
@@ -22,28 +23,38 @@ export const onPageLoad = async () => {
         try {
             const res = await axios.get(`${API_URL}/metadata`);
             console.log('Metadata fetched successfully:', res.data);
-            // returns {Orders: {time, version}, Pickups: {time, version}}
-            const { Orders, Pickups } = res.data;
+            // returns {Orders: {time, version}, Pickups: {time, version}, Inbound: {time, version}}
+            const { Orders, Pickups, Inbound } = res.data;
             const localTimeOrders = useOrdersStore.getState().ordersTimestamp;
             const localTimePickups = useOrdersStore.getState().pickupPlansTimestamp;
+            const localTimeInbound = useInboundStore.getState().timestamp;
+
 
 
             if (Orders.time > localTimeOrders) {
-                console.log('Newer data available. Fetching orders...');
+                console.log('Newer data available. Fetching orders...', Orders.time, localTimeOrders);
                 await fetchOrders();
-            } else if (Pickups.time < localTimeOrders) {
-                console.log('Local data is newer. Sending orders to server...');
+            } else if (Orders.time < localTimeOrders) {
+                console.log('Local data is newer. Sending orders to server...', Orders.time, localTimeOrders);
                 await sendOrders(Object.values(useOrdersStore.getState().orders));
             }
 
             if (Pickups.time > localTimePickups) {
-                console.log('Newer pickup data available. Fetching pickups...');
+                console.log('Newer pickup data available. Fetching pickups...', Pickups.time, localTimePickups);
                 await fetchPickups();
-            }
-                else if (Pickups.time < localTimePickups) {
-                console.log('Local pickup data is newer. Sending pickups to server...');
+            } else if (Pickups.time < localTimePickups) {
+                console.log('Local pickup data is newer. Sending pickups to server...', Pickups.time, localTimePickups);
                 await sendAllPickups(Object.values(useOrdersStore.getState().pickupPlans));
             }
+
+            if (Inbound.time > localTimeInbound) {
+                console.log('Newer inbound data available. Fetching inbound deliveries...', Inbound.time, localTimeInbound);
+                await fetchInbound();
+            } else if (Inbound.time < localTimeInbound) {
+                console.log('Local inbound data is newer. Sending inbound deliveries to server...', Inbound.time, localTimeInbound);
+                await sendInbound(useInboundStore.getState().deliveries);
+            }
+
 
             pageLoadSyncCompleted = true;
         } catch (err) {
@@ -62,7 +73,7 @@ export const fetchOrders = async () => {
         const response = await axios.get(`${API_URL}/orders`);
         const { orders, time } = response.data;
         useOrdersStore.getState().setOrders(orders, time);
-        console.log('Orders fetched successfully:', orders);
+        console.log('Orders fetched successfully:', time);
         return true;
     } catch (error) {
         console.error('Error fetching orders:', error);
@@ -83,6 +94,7 @@ export const sendOrders = async (orders: Order[]): Promise<number> => {
 
 export const sendNewOrders = async (orders: Order[]): Promise<number> => {
     try {
+        console.log('Sending new/updated orders to server:', orders);
         const response = await axios.put(`${API_URL}/orders`, { orders });
         console.log('New orders sent successfully:', response.data);
         return response.data.time;
@@ -98,7 +110,7 @@ export const fetchPickups = async () => {
         const response = await axios.get(`${API_URL}/pickups`);
         const { pickups, time } = response.data;
         useOrdersStore.getState().setPickups(pickups, time);
-        console.log('Pickups fetched successfully:', pickups);
+        console.log('Pickups fetched successfully:', time);
         return true;
     } catch (error) {
         console.error('Error fetching pickups:', error);
@@ -125,5 +137,40 @@ export const updateSinglePickup = async (pickup: PickupPlan): Promise<number> =>
     } catch (error) {
         console.error('Error updating pickup:', error);
         return 0;
+    }
+};
+
+export const sendInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
+    try {
+        const response = await axios.post(`${API_URL}/inbound`, { deliveries });
+        console.log('Inbound deliveries sent successfully:', response.data);
+        return response.data.time;
+    } catch (error) {
+        console.error('Error sending inbound deliveries:', error);
+        return 0;
+    }  
+};
+
+export const updateInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
+    try {
+        const response = await axios.put(`${API_URL}/inbound`, { deliveries });
+        console.log('Inbound deliveries updated successfully:', response.data);
+        return response.data.time;
+    } catch (error) {
+        console.error('Error updating inbound deliveries:', error);
+        return 0;
+    }
+};
+
+export const fetchInbound = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/inbound`);
+        const { deliveries, time } = response.data;
+        useInboundStore.getState().setInboundDeliveries(deliveries, time);
+        console.log('Inbound deliveries fetched successfully:', deliveries);
+        return true;
+    } catch (error) {
+        console.error('Error fetching inbound deliveries:', error);
+        return false;
     }
 };
