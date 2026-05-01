@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useOrdersStore } from '../Stores/OrdersStore';
 import { useInboundStore } from '../Stores/InboundStore';
 
-const DEBUG_SERVER = false;
+const DEBUG_SERVER = true;
 const API_URL = (import.meta.env.DEV && !DEBUG_SERVER) ? 'http://localhost:4941/api/v1/dashboard' : 'https://webserver-aekg.onrender.com/api/v1/dashboard';
 
 let pageLoadSync: Promise<void> | null = null;
@@ -34,7 +34,7 @@ export const onPageLoad = async () => {
             if (Orders.time > localTimeOrders) {
                 console.log('Newer data available. Fetching orders...', Orders.time, localTimeOrders);
                 await fetchOrders();
-            } else if (Orders.time < localTimeOrders) {
+            } else if (Orders.time < localTimeOrders && !DEBUG_SERVER) { // only send data if we're not using production server
                 console.log('Local data is newer. Sending orders to server...', Orders.time, localTimeOrders);
                 await sendOrders(Object.values(useOrdersStore.getState().orders));
             }
@@ -42,7 +42,7 @@ export const onPageLoad = async () => {
             if (Pickups.time > localTimePickups) {
                 console.log('Newer pickup data available. Fetching pickups...', Pickups.time, localTimePickups);
                 await fetchPickups();
-            } else if (Pickups.time < localTimePickups) {
+            } else if (Pickups.time < localTimePickups && !DEBUG_SERVER) {
                 console.log('Local pickup data is newer. Sending pickups to server...', Pickups.time, localTimePickups);
                 await sendAllPickups(Object.values(useOrdersStore.getState().pickupPlans));
             }
@@ -50,7 +50,7 @@ export const onPageLoad = async () => {
             if (Inbound.time > localTimeInbound) {
                 console.log('Newer inbound data available. Fetching inbound deliveries...', Inbound.time, localTimeInbound);
                 await fetchInbound();
-            } else if (Inbound.time < localTimeInbound) {
+            } else if (Inbound.time < localTimeInbound && !DEBUG_SERVER) {
                 console.log('Local inbound data is newer. Sending inbound deliveries to server...', Inbound.time, localTimeInbound);
                 await sendInbound(useInboundStore.getState().deliveries);
             }

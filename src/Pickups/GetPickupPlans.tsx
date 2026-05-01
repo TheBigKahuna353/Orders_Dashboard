@@ -4,12 +4,7 @@ import { getPickDate } from "../Data/filter"
 import { fromDateOnlyString, toDateOnlyString } from "../Data/Dates"
 
 
-
-
-
-
-
-export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}[] {
+export function usePickupPlans(day: Date): { pickupPlans: { order: GroupedOrder, plan: PickupPlan }[], groupedByTime: Record<string, { order: GroupedOrder, plan: PickupPlan }[]> } {
     const { pickupPlans, groupedOrders } = useOrdersStore()
 
     return useMemo(() => {
@@ -19,6 +14,7 @@ export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}
                 return fromDateOnlyString(pickupPlans[o.groupId].date).getTime() === day.getTime() // if plan exists, only include if for the selected day
             }
             if (pickDate.getTime() !== day.getTime()) return false // filter to orders for the selected day
+            if (o.pickupType !== "delivery") return false // only include delivery orders
             return true
         }).map(o => ({
             order: o,
@@ -38,6 +34,14 @@ export function usePickupPlans(day: Date): {order:GroupedOrder, plan:PickupPlan}
             }
         })
 
-        return pickupPlansForDay
+        // Group pickupPlans by pickupTime
+        const map: Record<string, typeof pickupPlansForDay> = {};
+        pickupPlansForDay.forEach(p => {
+            const time = p.plan.pickupTime || '--';
+            if (!map[time]) map[time as string] = [];
+            map[time].push(p);
+        });
+
+        return { pickupPlans: pickupPlansForDay, groupedByTime: map };
     }, [day, groupedOrders, pickupPlans])
 }

@@ -34,7 +34,7 @@ const SalesRep: React.FC<SalesRepProps> = ({ id }) => {
             <tbody>
               {orders.map((order, index) => {
                 return (
-                  <Draggable key={index} id={order.groupId}>
+                  <Draggable key={index} id={order.groupId} table>
                     <td className="stat-label">{order.customer}</td>
                     <td className="stat-value">{order.orders.length}</td>
                   </Draggable>

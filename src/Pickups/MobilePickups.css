@@ -1,0 +1,119 @@
+.mobile-pickups-root {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.mobile-pickups-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg-header);
+  z-index: 10;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-pickups-title {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.mobile-pickups-list {
+  padding: 12px;
+}
+
+.mobile-pickups-empty {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 40px;
+}
+
+.mobile-pickups-group {
+  margin-bottom: 24px;
+}
+
+.mobile-pickups-group-header {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.mobile-pickups-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-pickups-card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 14px;
+  box-shadow: 0 1px 4px var(--modal-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-pickups-card.past {
+  border: 2px solid var(--negative);
+  background: var(--bg-panel);
+}
+
+.mobile-pickups-card-customer {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+
+.mobile-pickups-card-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-pickups-card-pallets {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.mobile-pickups-card-location {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.mobile-pickups-card-deliveries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.mobile-pickups-card-badge {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mobile-pickups-datepicker {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 14px;
+}

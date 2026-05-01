@@ -85,7 +85,7 @@ export const useOrdersStore = create<OrdersState>()(
                     // allow date correction if TMS changed
                     deliverDate: order.deliverDate,
 
-                    // fields derived from other fields, we recalculate those rather than trusting incoming data
+                    // fields derived from other fields, we recalculate those
                     status: deriveStatus(order.comments, order.shipmentNo ?? "", order.DeliverStatus ?? "", held),
                 }
                 updated.push(orders[order.deliveryNo])

@@ -12,8 +12,12 @@ function readFileAsText(file: File): Promise<string> {
 }
 
 function parseDate(dateStr: string): Date {
-    // format is "dd/mm/yyyy"
-    const [day, month, year] = dateStr.split('/');
+    // format is "dd/mm/yyyy" or "yyyy-mm-dd", we need to handle both
+    if (dateStr.includes('/')) {
+        const [day, month, year] = dateStr.split('/');
+        return new Date(Number(year), Number(month) - 1, Number(day));
+    } 
+    const [year, month, day] = dateStr.split('-');
     return new Date(Number(year), Number(month) - 1, Number(day));
 }
 
@@ -37,7 +41,7 @@ function parseSAPMHTML(text: string): InboundLine[] {
         const date = parseDate(cells[19].textContent?.trim() || cells[20].textContent?.trim()) // check-in date is in cell 19 or 20 depending on the format, 19 will be empty for some rows, so we check 20 as well
 
         if (isNaN(date.getTime())) {
-            console.warn("Invalid date format in row, skipping:", Array.from(cells).map(c => c.textContent));
+            console.warn("Invalid date format in row, skipping:", date, Array.from(cells).map(c => c.textContent));
             continue;
         }
         if (date < new Date('2024-03-01')) continue; // skip rows with invalid dates, assuming those are not data rows
