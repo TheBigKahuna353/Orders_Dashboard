@@ -180,3 +180,12 @@ type Asn = {
     qty: number
     sscc: string
 }
+
+type ColumnConfig = {
+  key: string
+  label: string
+  width?: string
+  date?: boolean
+  link?: boolean
+  capitalize?: boolean
+}

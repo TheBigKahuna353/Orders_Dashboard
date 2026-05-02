@@ -26,7 +26,8 @@ function Draggable(props: DraggableProps) {
   const style2 : React.CSSProperties = {
      cursor: isDragging ? 'grabbing' : 'grab', 
      width: '10px', 
-     padding: '0'
+     padding: '0',
+     alignContent: 'center',
   }
   
   if (props.table) {

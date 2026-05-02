@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useOrdersStore } from '../Stores/OrdersStore';
 import { useInboundStore } from '../Stores/InboundStore';
 
-const DEBUG_SERVER = true;
+const DEBUG_SERVER = false;
 const API_URL = (import.meta.env.DEV && !DEBUG_SERVER) ? 'http://localhost:4941/api/v1/dashboard' : 'https://webserver-aekg.onrender.com/api/v1/dashboard';
 
 let pageLoadSync: Promise<void> | null = null;

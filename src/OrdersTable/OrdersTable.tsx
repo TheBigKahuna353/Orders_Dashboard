@@ -6,43 +6,67 @@ import { useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 import { MdChevronRight, MdExpandMore } from 'react-icons/md'
 import { useOrdersStore } from '../Stores/OrdersStore'
-import { Capitalize, displayLongText } from '../Data/utils'
+import { Capitalize } from '../Data/utils'
 import { displayDate } from '../Data/Dates'
-import { useNavigate } from 'react-router'
+import { Link } from 'react-router'
 import { List, type RowComponentProps } from 'react-window'
-import { createPortal } from 'react-dom'
+
+
+type OrdersTableMode = {
+  draggable?: boolean
+  columns: ColumnConfig[]
+  filter?: (order: GroupedOrder) => boolean
+  offset?: number
+}
+
+function getValueByKey(order: GroupedOrder, key: string): React.ReactNode {
+  const value = order[key as keyof GroupedOrder];
+  if (Array.isArray(value)) {
+    return value.length;
+  } else if (typeof value === 'string' || typeof value === 'number' || React.isValidElement(value)) {
+    return value;
+  } else if (typeof value === 'boolean') {
+    return value ? 'Yes' : 'No';
+  } else if (value !== undefined && value !== null) {
+    return String(value);
+  }
+  return '';
+}
+
+function displayValue(value: React.ReactNode, config: ColumnConfig): React.ReactNode {
+  let displayVal: React.ReactNode = value;
+  if (config.date && typeof value === 'string') {
+    displayVal = displayDate(value);
+  } else if (config.capitalize && typeof value === 'string') {
+    displayVal = Capitalize(value);
+  }
+  return displayVal;
+}
 
 interface props {
   id: string
-  widget?: boolean // when true, acts like draggable and not fullscreen
+  mode?: OrdersTableMode
 }
 
-const ROW_HEIGHT = 56;
+const ROW_HEIGHT = 40; // Adjusted to account for 1px border-bottom and 50px header height
 
-const OrdersTable: React.FC<props> = ({ widget, id }) => {
-  const filter = (order: GroupedOrder) => order.status !== 'held' && order.pickupType === "delivery"
-  const orders = useVisibleOrders(id, widget ? filter : undefined)
+const OrdersTable: React.FC<props> = ({ mode, id }) => {
+  const orders = useVisibleOrders(id, mode?.filter);
   const setSort = useUIStore(s => s.setTableSort)
   const { splitOrder, joinOrders } = useOrdersStore()
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [closing, setClosing] = useState<Set<string>>(new Set())
   const [mergeSourceOrder, setMergeSourceOrder] = useState<Order | null>(null)
-  const navigate = useNavigate()
-  const [dropdownOpen, setDropdownOpen] = React.useState<boolean[]>(new Array(orders.length).fill(false));
-  const [dropdownPos, setDropdownPos] = useState<{ [key: number]: { x: number, y: number } }>({});
+  // navigate removed
+  // Dropdown state removed
 
-  document.documentElement.setAttribute('widget', widget ? 'true' : 'false');
+  document.documentElement.setAttribute('widget', mode?.draggable ? 'true' : 'false');
 
-  const handleDropdown = (e: React.MouseEvent, index: number) => {
-    e.stopPropagation();
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    setDropdownPos(prev => ({ ...prev, [index]: { x: rect.left, y: rect.bottom } }));
-    setDropdownOpen(prev => {
-      const newOpen = [...prev];
-      newOpen[index] = !newOpen[index];
-      return newOpen;
-    });
-  };
+  const colsWidths = "20px " + (mode?.draggable ? "20px " : "") + mode?.columns.map(col => col.width || '1fr').join(' ');
+
+  console.log(colsWidths)
+
+  // Dropdown handler removed
   function toggleGroup(groupId: string) {
     if (expandedGroups.has(groupId)) {
       setClosing(prev => new Set(prev).add(groupId))
@@ -62,17 +86,6 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
       setExpandedGroups(prev => new Set(prev).add(groupId))
     }
   }
-  const closeDropdown = (index:number) => setDropdownOpen(prev => {
-    const newOpen = [...prev];
-    newOpen[index] = false;
-    return newOpen;
-  });
-  useEffect(() => {
-    if (!dropdownOpen.some(open => open)) return;
-    const onClick = () => setDropdownOpen(prev => prev.map(() => false));
-    window.addEventListener('click', onClick);
-    return () => window.removeEventListener('click', onClick);
-  }, [dropdownOpen]);
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
@@ -95,22 +108,6 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
     }
   });
 
-  function Dropdown({ children, position }: { children: React.ReactNode, position: { x: number, y: number } }) {
-  return createPortal(
-    <div
-      className="dropdown"
-      style={{
-        position: "fixed",
-        top: position.y,
-        left: position.x,
-        zIndex: 9999
-      }}
-    >
-      {children}
-    </div>,
-    document.body
-  )
-}
 
   // Row renderer for react-window
   const Row = ({ index, style }: RowComponentProps) => {
@@ -119,22 +116,14 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
     if (row.type === 'main') {
       const order = row.order;
       const isOpen = expandedGroups.has(order.groupId);
-      const isDropdownOpen = dropdownOpen[row.index];
-      const dropdownPosition = dropdownPos[row.index];
-      const dropdownMenu = isDropdownOpen && dropdownPosition && (
-        <Dropdown position={dropdownPosition}>
-          <div className="order-action-dropdown">
-            <button onClick={() => { closeDropdown(row.index); navigate(`/group/${order.groupId}`); }}>View</button>
-            <button onClick={() => { closeDropdown(row.index); alert(`Delete ${order.customer}`); }}>Delete</button>
-          </div>
-        </Dropdown>
-      );
+      // Dropdown menu removed
       const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.orders[0].customer && mergeSourceOrder.groupId !== order.groupId;
-      if (widget) {
+      // ---------------------------- Main row for draggable mode --------------------
+      if (mode?.draggable) {
         return (
           <div style={style} key={order.groupId}>
             <Draggable
-              id={order.groupId + ':8'} // adding suffix for number of columns
+              id={order.groupId + ':' + mode.columns.length} // now 7 columns
               isMergeTarget={isMergeTarget}
               className='table-row'
               onClick={() => {
@@ -144,55 +133,48 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
                 }
               }}
             >
-              <span className="table-row-col"
+              <span className="table-row-col toggle-col"
                 onClick={() => toggleGroup(order.groupId)}
-                style={{ cursor: "pointer" }}
               >
                 {isOpen ? <MdExpandMore /> : <MdChevronRight />}
               </span>
-              <span className="table-row-col customer-name">{displayLongText(order.customer, 25)}</span>
-              <span className="table-row-col">{order.totalPallets}</span>
-              <span className="table-row-col">{order.totalWeight}</span>
-              <span className="table-row-col">{order.totalVolume}</span>
-              <span className="table-row-col">{order.orders.length}</span>
-              <span className="table-row-col">{Capitalize(order.status)}</span>
-              <span className="table-row-col">{displayDate(order.deliverDate)}</span>
-              <span className="table-row-col" style={{position:'relative'}}>
-                <button
-                  className="order-action-btn"
-                  onClick={(e) => handleDropdown(e, row.index)}
-                >
-                  More
-                </button>
-                {dropdownMenu}
-              </span>
+              {mode.columns.map(col => {
+                const value = getValueByKey(order, col.key);
+                if (col.link) {
+                  return (
+                    <Link className='table-row-col' to={`/group/${order.groupId}`} key={col.key}>
+                      <span>{displayValue(value, col)}</span>
+                    </Link>
+                  );
+                }
+                return <span key={col.key} className='table-row-col'>{displayValue(value, col)}</span>;
+              })}
             </Draggable>
-            </div>
+          </div>
         );
-      } else {
+      } else { // ---------------------------- Main row for non-draggable mode --------------------
         return (
           <div style={style} key={order.groupId}>
-            <div className={`table-row`} style={{zIndex: dropdownMenu ? 1 : 0}}>
-              <div className="customer-name table-row-col" onClick={() => toggleGroup(order.groupId)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            <div className={`table-row`}>
+              <div className="table-row-col toggle-col" onClick={() => toggleGroup(order.groupId)}>
                 {isOpen ? <MdExpandMore /> : <MdChevronRight />}
-                </div>
-              <span className='table-row-col'>{order.customer}</span>
-              <span className='table-row-col'>{order.totalPallets}</span>
-              <span className='table-row-col'>{order.totalWeight}</span>
-              <span className='table-row-col'>{order.totalVolume}</span>
-              <span className='table-row-col'>{order.orders.length}</span>
-              <span className='table-row-col'>{order.status}</span>
-              <span className='table-row-col'>{displayDate(order.deliverDate)}</span>
-              <span className='table-row-col' style={{position:'relative'}}>
-                <button style={{zIndex: 0}} onClick={(e) => handleDropdown(e, row.index)}>
-                  More
-                </button>
-                {dropdownMenu}
-              </span>
+              </div>
+              {mode?.columns.map(col => {
+                const value = getValueByKey(order, col.key);
+                if (col.link) {
+                  return (
+                    <Link className='table-row-col' to={`/group/${order.groupId}`} key={col.key}>
+                      <span>{displayValue(value, col)}</span>
+                    </Link>
+                  );
+                }
+                return <span key={col.key} className='table-row-col'>{displayValue(value, col)}</span>;
+              })}
             </div>
           </div>
         );
       }
+      // ---------------------------- Detail row ------------------
     } else if (row.type === 'detail' && row.detailOrder) {
       const o = row.detailOrder;
       return (
@@ -233,32 +215,29 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
 
   // Table headers
   const headers = (
-    <div className="header-row" style={{minWidth: '100%', width: 'max-content', position: 'sticky', top: 0, zIndex: 2, height: "60px"}}>
-      <span className='table-row-col'></span>
-      {widget && <span className='table-row-col'></span>}
-      <span onClick={() => setSort(id, 'customer')}  className='table-row-col'>Customer</span>
-      <span onClick={() => setSort(id, 'totalPallets')}  className='table-row-col'>Pallets</span>
-      <span onClick={() => setSort(id, 'totalWeight')}  className='table-row-col'>Weight</span>
-      <span onClick={() => setSort(id, 'totalVolume')}  className='table-row-col'>Volume</span>
-      <span onClick={() => setSort(id, 'orders')}  className='table-row-col'># Orders</span>
-      <span onClick={() => setSort(id, 'status')}  className='table-row-col'>Status</span>
-      <span onClick={() => setSort(id, 'deliverDate')}  className='table-row-col'>Deliver Date</span>
-      <span className='table-row-col'>Action</span>
+    <div className="header-row" style={{width: '100%', position: 'sticky', top: 0, zIndex: 2}}>
+      <span className='table-row-col'></span> {/* for expand/collapse icon */}
+      {mode?.draggable && <span className='table-row-col'></span>}{/* for drag handle */}
+      {mode?.columns.map(col => (
+        <span key={col.key} onClick={() => setSort(id, col.key)} className='table-row-col'>{col.label}</span>
+      ))}
     </div>
   );
 
   // Unified scroll container for horizontal scroll
   const unifiedScroll = (
     <div style={{ width: '100%', height: '100%', overflowY: 'hidden' }}>
-      <div style={{ minWidth: '100%', width: 'max-content', display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div style={{ flex: 1, minHeight: 0, height: '80%', overflowY: 'hidden', overflowX: 'auto', width: '100%' }}>
+      <div style={{ minWidth: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ flex: 1, minHeight: 0, height: '80%', overflowY: 'hidden', overflowX: 'auto', width: '100%',
+          ['--orders-grid-columns' as string]: colsWidths
+         }}>
           {headers}
           <List
             rowComponent={Row}
             rowCount={flatRows.length}
             rowHeight={ROW_HEIGHT}
             rowProps={{}}
-            style={{height: "calc(100% - 60px)"}}  // for some reason 60px is the magic number to make it fit perfectly without cutting off the last row or leaving extra space at the bottom
+            style={{height: `calc(100% - ${50 + (mode?.offset || 0)}px)`}}  // for some reason 50px is the magic number to make it fit perfectly without cutting off the last row or leaving extra space at the bottom
           >
           </List>
         </div>
@@ -266,7 +245,7 @@ const OrdersTable: React.FC<props> = ({ widget, id }) => {
     </div>
   );
 
-  if (widget) {
+  if (mode?.draggable) {
     return (
       <Droppable id={id} >
         <div className="orders-table-content" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>

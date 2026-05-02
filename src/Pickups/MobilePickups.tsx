@@ -42,9 +42,9 @@ export const MobilePickups: React.FC<Props> = ({ selectedDate, setSelectedDate }
         <div className="mobile-pickups-root">
             {/* Sticky header */}
             <div className="mobile-pickups-header">
-                <div className="mobile-pickups-header-row">
-                    <span className="mobile-pickups-title">Pickups</span>
-                    <div className="mobile-pickups-datepicker-wrapper">
+                <div className="mobile-pickups-header-row" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                    <span className="mobile-pickups-title" style={{ textAlign: 'center' }}>Pickups</span>
+                    <div className="mobile-pickups-datepicker-wrapper" style={{ marginTop: 8 }}>
                         <DatePicker
                             selected={selectedDate}
                             onChange={(date: string | number | Date | null) => {
