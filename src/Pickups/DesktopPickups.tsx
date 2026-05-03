@@ -261,7 +261,7 @@ export const DesktopPickups = ({ selectedDate, setSelectedDate }: Props) => {
                               >Remove</button>
                               <button
                                 onClick={() => {
-                                  const newDate = addDays(plan.date, 1);
+                                  const newDate = addDays(plan.date, 1, true);
                                   setPickupPlan(order.groupId, {
                                     ...plan,
                                     date: newDate

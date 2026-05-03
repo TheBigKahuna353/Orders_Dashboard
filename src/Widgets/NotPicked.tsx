@@ -22,7 +22,7 @@ const NotPicked: React.FC<NotPickedProps> = ({ id }) => {
                 <span className="card-icon">🚚</span>
                 <h3 className="card-title">{title}</h3>
             </div>
-            <OrdersTable id={id} mode={{ columns: cols, filter, offset: 55 }}/>
+            <OrdersTable id={id} mode={{ columns: cols, filter, offset: 35 }}/>
         </div>
     )
 }

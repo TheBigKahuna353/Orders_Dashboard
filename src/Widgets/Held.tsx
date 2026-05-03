@@ -1,57 +1,34 @@
 import React from 'react'
 import './StatsCards.css'
 import { Droppable } from '../Dashboard/Droppable'
-import { Draggable } from '../Dashboard/Draggable'
-import { useVisibleOrders } from '../Data/GroupOrders'
-import { useUIStore } from '../Stores/UIStore'
-import { displayDate } from '../Data/Dates'
-import { displayLongText } from '../Data/utils'
+import OrdersTable from '../OrdersTable/OrdersTable'
 
 interface HeldProps {
-  id: string
+    id: string
 }
 
 const Held: React.FC<HeldProps> = ({ id }) => {
 
-  const title = "Held Orders"
-  const orders = useVisibleOrders(title, (order) => order.status === 'held') // only show held orders
-  const setSort = useUIStore(s => s.setTableSort) 
+    const title = "Held Orders"
 
-  return (
-    <Droppable id={id}>
-      <div className="stats-card">
-        <div className="card-header">
-          <span className="card-icon">🚚</span>
-          <h3 className="card-title">{title}</h3>
-        </div>
-        <div className="card-content">
-          <table className="table">
-            <thead>
-              <tr>
-                <th className='dragCol'></th>
-                <th onClick={() => setSort(title, "customer")}>Customer</th>
-                <th onClick={() => setSort(title, "ordersCount")}># Orders</th>
-                <th onClick={() => setSort(title, "totalVolume")}>Volume</th>
-                <th onClick={() => setSort(title, "deliverDate")}>Delivery Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order, index) => {
-                return (
-                  <Draggable key={index} id={order.groupId+':4'} table>
-                    <td className="stat-label">{displayLongText(order.customer, 20)}</td>
-                    <td className="stat-value">{order.orders.length}</td>
-                    <td className="stat-value">{order.totalVolume}</td>
-                    <td className="stat-value">{displayDate(order.deliverDate)}</td>
-                  </Draggable>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-    </div>
-    </Droppable>
-  )
+    const cols: ColumnConfig[] = [
+        { key: 'customer', label: 'Customer' },
+        { key: 'ordersCount', label: '# Orders' },
+        { key: 'totalVolume', label: 'Volume' },
+        { key: 'deliverDate', label: 'Delivery Date' },
+    ]
+
+    return (
+        <Droppable id={id}>
+            <div className="stats-card">
+                <div className="card-header">
+                    <span className="card-icon">🚚</span>
+                    <h3 className="card-title">{title}</h3>
+                </div>
+                <OrdersTable id={id} mode={{ draggable: true, columns: cols, filter: (order) => order.status === 'held' }} />
+            </div>
+        </Droppable>
+    )
 }
 
 export default Held

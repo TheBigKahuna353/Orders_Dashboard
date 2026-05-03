@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { DASHBOARD_LAYOUTS } from "../Layout/Layouts"
+import { type WidgetSettings } from "../Widgets/Widgets"
 
 type SortDirection = "asc" | "desc"
 
@@ -36,6 +37,9 @@ type UIState = {
     removeWidget: (widgetId: string) => void
     resizeWidget: (widgetId: string, w: number, h: number) => void
     moveWidget: (widgetId: string, newCol: number, newRow: number) => void
+
+    widgetSettings: Record<string, WidgetSettings>
+    setWidgetSettings: (widgetId: string, settings: WidgetSettings) => void
 
     // CYCLECOUNT STATE
     cycleCountView: "latest" | "weekly" | "all"
@@ -159,16 +163,20 @@ persist(
 
         // CYCLE COUNT VIEW
         cycleCountView: "latest",
-        setCycleCountView: (view) => set({ cycleCountView: view })
+        setCycleCountView: (view) => set({ cycleCountView: view }),
+
+        // WIDGET SETTINGS
+        widgetSettings: {}, 
+        setWidgetSettings: (widgetId, settings) => set(state => ({
+            widgetSettings: {
+                ...state.widgetSettings,
+                [widgetId]: settings
+            }
+        }))
 
     }),
     {
         name: "ui-state",
-        onRehydrateStorage: () => (state) => {
-            if (!state) return
-            if (typeof state.dashboardLayout === "number") {
-                state.dashboardLayout = DASHBOARD_LAYOUTS[state.dashboardLayout] || DASHBOARD_LAYOUTS[0]
-            }
-        }
+        version: 0.2,
     }
 ))

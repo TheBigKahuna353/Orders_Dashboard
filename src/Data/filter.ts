@@ -2,6 +2,7 @@ import { fromDateOnlyString } from "./Dates";
 import { subtractWorkDays } from "./utils";
 import { useCustomerStore } from "../Stores/CustomerStore";
 
+export type Filter = 'All' | 'All Out of Town' | 'Out of town small' | 'All Locals' | 'Locals small' | 'Bulk';
 
 export function filterOrder(city: string, customer: string, filter: string): boolean {
     if (filter === 'All') {

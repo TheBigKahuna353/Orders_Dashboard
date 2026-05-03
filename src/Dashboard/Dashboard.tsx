@@ -16,9 +16,13 @@ import { useUIStore } from '../Stores/UIStore.ts';
 import { WIDGET_DROP_HANDLERS, WIDGETS } from '../Widgets/Widgets.tsx';
 import { displayDate } from '../Data/Dates.ts';
 import { GetWidgetById } from '../Layout/Layouts.ts';
+import PlaceHolder from '../Widgets/PlaceHolder.tsx';
+import { WidgetSettingsPanel } from './WidgetSettings.tsx';
 
 const GRID_COLS = 3;
 const GRID_ROWS = 3;
+
+
 
 function Dashboard() {
 
@@ -30,6 +34,8 @@ function Dashboard() {
     const [dragCols, setDragCols] = useState<number>(0);
 
     const [editMode, setEditMode] = useState(false)
+    const [openSettingsWidget, setOpenSettingsWidget] = useState<DashboardWidget | null>(null)
+    // const [settingsOpen, setSettingsOpen] = useState(false)
     const gridRef = useRef<HTMLDivElement>(null)
 
     const {dashboardLayout, moveWidget} = useUIStore()
@@ -52,10 +58,7 @@ function Dashboard() {
     }
 
     const showFilters = {
-      filter: !editMode,
-      date: !editMode,
       addWidget: editMode,
-      search: !editMode
     };
 
     return (
@@ -69,8 +72,7 @@ function Dashboard() {
           setActiveOrder(null)
         }}
         collisionDetection={pointerWithin}>
-          <DragOverlay className='dragOverlay'
-            >
+          <DragOverlay className='dragOverlay'>
           {activeOrder ? (
             <div className='dragRow' style={{gridTemplateColumns: `20px repeat(${dragCols}, 1fr)`}}>
               <MdDragIndicator size={24}/>
@@ -84,24 +86,19 @@ function Dashboard() {
             </div>
           ) : null}
         </DragOverlay>
-
-
+        <WidgetSettingsPanel widget={openSettingsWidget} onClose={() => setOpenSettingsWidget(null)} />
         <div className="dashboard" style={heightCSS}>
           <main className="main-content">
             <Header onImportClick={import_data} setEditMode={setEditMode} showFilters={showFilters}/>
             <div className="dash-content" ref={gridRef} style={gridStyle}>
               {dashboardLayout.map((widget: DashboardWidget) => {
-                if (editMode) {
-                  return <GridItem key={widget.id} widget={widget} editMode={editMode} ROW_HEIGHT={rowHeight} COL_WIDTH={columnWidth} />;
-                }
-                const WidgetComponent = WIDGETS[widget.type];
+                const WidgetComponent = editMode ? PlaceHolder : WIDGETS[widget.type];
                 // send all props to the widget component, they only accept what they need
                 return (
                   <GridItem key={widget.id} widget={widget}>
-                    <WidgetComponent id={widget.id} />
+                    <WidgetComponent id={widget.id} widget={widget} ROW_HEIGHT={rowHeight} COL_WIDTH={columnWidth} openSettings={() => setOpenSettingsWidget(widget)} />
                   </GridItem>
                 )
-                  
               })}
             </div>
           </main>

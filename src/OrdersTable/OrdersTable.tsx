@@ -64,7 +64,9 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
 
   const colsWidths = "20px " + (mode?.draggable ? "20px " : "") + mode?.columns.map(col => col.width || '1fr').join(' ');
 
-  console.log(colsWidths)
+  function getUrlForOrder(order: GroupedOrder) {
+    return `/group/${order.groupId.replace(/\//g, '-').replace(/\s/g, '-')}`
+  }
 
   // Dropdown handler removed
   function toggleGroup(groupId: string) {
@@ -142,7 +144,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
                 const value = getValueByKey(order, col.key);
                 if (col.link) {
                   return (
-                    <Link className='table-row-col' to={`/group/${order.groupId}`} key={col.key}>
+                    <Link className='table-row-col' to={getUrlForOrder(order)} key={col.key}>
                       <span>{displayValue(value, col)}</span>
                     </Link>
                   );
@@ -163,7 +165,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
                 const value = getValueByKey(order, col.key);
                 if (col.link) {
                   return (
-                    <Link className='table-row-col' to={`/group/${order.groupId}`} key={col.key}>
+                    <Link className='table-row-col' to={getUrlForOrder(order)} key={col.key}>
                       <span>{displayValue(value, col)}</span>
                     </Link>
                   );

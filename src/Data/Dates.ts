@@ -29,8 +29,13 @@ export function displayDate(date: string | Date): string {
     }
 }
 
-export function addDays(date: string, days: number): string {
+export function addDays(date: string, days: number, skipWeekends?: boolean): string {
     const d = fromDateOnlyString(date)
     d.setDate(d.getDate() + days)
+    if (skipWeekends) {
+        while (d.getDay() === 0 || d.getDay() === 6) { // 0 = Sunday, 6 = Saturday
+            d.setDate(d.getDate() + 1)
+        }
+    }
     return toDateOnlyString(d)
 }

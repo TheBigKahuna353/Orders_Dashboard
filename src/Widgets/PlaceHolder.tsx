@@ -3,7 +3,12 @@ import { useDraggable } from "@dnd-kit/core"
 import './PlaceHolder.css';
 import { useUIStore } from "../Stores/UIStore";
 
-const PlaceHolder: React.FC<{ widget: DashboardWidget; ROW_HEIGHT: number; COL_WIDTH: number }> = ({ widget, ROW_HEIGHT, COL_WIDTH }) => {
+const PlaceHolder: React.FC<{ 
+    widget: DashboardWidget; 
+    ROW_HEIGHT: number; 
+    COL_WIDTH: number;
+    openSettings: () => void;
+}> = ({ widget, ROW_HEIGHT, COL_WIDTH, openSettings }) => {
 
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
     id: widget.id
@@ -66,6 +71,13 @@ const PlaceHolder: React.FC<{ widget: DashboardWidget; ROW_HEIGHT: number; COL_W
                 <p>Widget type: {widget.type}</p>
                 <p>{widget.colSpan} x {widget.rowSpan}</p>
             </div>
+            <button
+                className="placeholder-widget-select"
+                onClick={() => openSettings()}
+                title="Widget settings"
+            >
+                ⚙
+            </button>
             <div
                 className="resize-handle"
                 onMouseDown={(e) => startResize(e, widget.id)}
