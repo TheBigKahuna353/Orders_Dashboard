@@ -1,12 +1,15 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 
 
 const Sample = () => {
 
-    localStorage.setItem('sample', 'True')
     const navigate = useNavigate();
-    navigate('/');
+    useEffect(() => {
+        localStorage.setItem('sample', 'True');
+        navigate('/dashboard');
+    }, [navigate]);
     return (
         <div>
             Sample

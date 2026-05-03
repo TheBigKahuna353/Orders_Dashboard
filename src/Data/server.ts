@@ -82,7 +82,7 @@ export const fetchOrders = async () => {
 };
 
 export const sendOrders = async (orders: Order[]): Promise<number> => {
-    if (localStorage.getItem('sample') === 'true') {
+    if (localStorage.getItem('sample') === 'True') {
         console.log('Sample mode enabled, skipping sending orders to server.');
         return Date.now();
     }
@@ -97,7 +97,7 @@ export const sendOrders = async (orders: Order[]): Promise<number> => {
 };
 
 export const sendNewOrders = async (orders: Order[]): Promise<number> => {
-    if (localStorage.getItem('sample') === 'true') {
+    if (localStorage.getItem('sample') === 'True') {
         console.log('Sample mode enabled, skipping sending new orders to server.');
         return Date.now();
     }
@@ -128,7 +128,7 @@ export const fetchPickups = async () => {
 
 export const sendAllPickups = async (pickups: PickupPlan[]): Promise<number> => {
     try {
-        if (localStorage.getItem('sample') === 'true') {
+        if (localStorage.getItem('sample') === 'True') {
             console.log('Sample mode enabled, skipping sending pickups to server.');
             return Date.now();
         }
@@ -143,7 +143,7 @@ export const sendAllPickups = async (pickups: PickupPlan[]): Promise<number> => 
 
 export const updateSinglePickup = async (pickup: PickupPlan): Promise<number> => {
     try {
-        if (localStorage.getItem('sample') === 'true') {
+        if (localStorage.getItem('sample') === 'True') {
             console.log('Sample mode enabled, skipping updating pickup on server.');
             return Date.now();
         }
@@ -158,7 +158,7 @@ export const updateSinglePickup = async (pickup: PickupPlan): Promise<number> =>
 
 export const sendInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
     try {
-        if (localStorage.getItem('sample') === 'true') {
+        if (localStorage.getItem('sample') === 'True') {
             console.log('Sample mode enabled, skipping sending inbound deliveries to server.');
             return Date.now();
         }
@@ -173,7 +173,7 @@ export const sendInbound = async (deliveries: InboundDelivery[]): Promise<number
 
 export const updateInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
     try {
-        if (localStorage.getItem('sample') === 'true') {
+        if (localStorage.getItem('sample') === 'True') {
             console.log('Sample mode enabled, skipping updating inbound deliveries on server.');
             return Date.now();
         }
