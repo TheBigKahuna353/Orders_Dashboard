@@ -82,6 +82,10 @@ export const fetchOrders = async () => {
 };
 
 export const sendOrders = async (orders: Order[]): Promise<number> => {
+    if (localStorage.getItem('sample') === 'true') {
+        console.log('Sample mode enabled, skipping sending orders to server.');
+        return Date.now();
+    }
     try {
         const response = await axios.post(`${API_URL}/orders`, { orders });
         console.log('Orders sent successfully:', response.data);
@@ -93,6 +97,10 @@ export const sendOrders = async (orders: Order[]): Promise<number> => {
 };
 
 export const sendNewOrders = async (orders: Order[]): Promise<number> => {
+    if (localStorage.getItem('sample') === 'true') {
+        console.log('Sample mode enabled, skipping sending new orders to server.');
+        return Date.now();
+    }
     try {
         console.log('Sending new/updated orders to server:', orders);
         const response = await axios.put(`${API_URL}/orders`, { orders });
@@ -120,6 +128,10 @@ export const fetchPickups = async () => {
 
 export const sendAllPickups = async (pickups: PickupPlan[]): Promise<number> => {
     try {
+        if (localStorage.getItem('sample') === 'true') {
+            console.log('Sample mode enabled, skipping sending pickups to server.');
+            return Date.now();
+        }
         const response = await axios.post(`${API_URL}/pickups`, { pickups });
         console.log('Pickups sent successfully:', response.data);
         return response.data.time;
@@ -131,6 +143,10 @@ export const sendAllPickups = async (pickups: PickupPlan[]): Promise<number> => 
 
 export const updateSinglePickup = async (pickup: PickupPlan): Promise<number> => {
     try {
+        if (localStorage.getItem('sample') === 'true') {
+            console.log('Sample mode enabled, skipping updating pickup on server.');
+            return Date.now();
+        }
         const response = await axios.put(`${API_URL}/pickups`, { pickup });
         console.log('Pickup updated successfully:', response.data);
         return response.data.time;
@@ -142,6 +158,10 @@ export const updateSinglePickup = async (pickup: PickupPlan): Promise<number> =>
 
 export const sendInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
     try {
+        if (localStorage.getItem('sample') === 'true') {
+            console.log('Sample mode enabled, skipping sending inbound deliveries to server.');
+            return Date.now();
+        }
         const response = await axios.post(`${API_URL}/inbound`, { deliveries });
         console.log('Inbound deliveries sent successfully:', response.data);
         return response.data.time;
@@ -153,6 +173,10 @@ export const sendInbound = async (deliveries: InboundDelivery[]): Promise<number
 
 export const updateInbound = async (deliveries: InboundDelivery[]): Promise<number> => {
     try {
+        if (localStorage.getItem('sample') === 'true') {
+            console.log('Sample mode enabled, skipping updating inbound deliveries on server.');
+            return Date.now();
+        }
         const response = await axios.put(`${API_URL}/inbound`, { deliveries });
         console.log('Inbound deliveries updated successfully:', response.data);
         return response.data.time;

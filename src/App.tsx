@@ -19,6 +19,7 @@ import InboundPage from './Inwards/InwardsPage';
 import UtilsPage from './UtilPages/homepage';
 
 import { onPageLoad } from './Data/server';
+import Sample from './Sample/Sample';
 
 export default function App() {
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/group/:id" element={<GroupedOrderPage />} />
           <Route path="/inbounds" element={<InboundPage />} />
           <Route path="/utils" element={<UtilsPage />} />
+          <Route path="sample" element={<Sample />} />
 
         </Routes>
       </div>
