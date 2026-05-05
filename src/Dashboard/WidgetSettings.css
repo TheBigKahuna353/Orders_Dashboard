@@ -1,0 +1,102 @@
+.widget-settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-panel, #fff);
+    box-shadow: -2px 0 16px rgba(0,0,0,0.15);
+    z-index: 3000;
+    transition: transform 0.2s;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+}
+.widget-settings-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.widget-settings-title {
+    margin-top: 0;
+}
+.widget-settings-section {
+    margin-bottom: 24px;
+}
+.widget-settings-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+.widget-settings-date-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.widget-settings-segmented {
+    display: flex;
+    border-radius: 8px;
+    background: var(--bg-control, #f0f0f0);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    overflow: hidden;
+    position: relative;
+    width: 265px;
+    height: 36px;
+}
+.widget-settings-segmented-btn {
+    padding: 6px 18px;
+    border: none;
+    background: transparent;
+    color: #333;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    z-index: 1;
+    flex: 1 1 0;
+    height: 100%;
+}
+.widget-settings-segmented-btn.active {
+    background: var(--primary, #1976d2);
+    color: #fff;
+}
+.widget-settings-segmented-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: var(--primary, #1976d2);
+    border-radius: 8px;
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 0;
+}
+.widget-settings-segmented-highlight.right {
+    transform: translateX(100%);
+}
+.widget-settings-segmented-highlight.left {
+    transform: translateX(0);
+}
+.widget-settings-columns-list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.widget-settings-column-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.widget-settings-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.18);
+    z-index: 2999;
+}

@@ -189,3 +189,10 @@ type ColumnConfig = {
   link?: boolean
   capitalize?: boolean
 }
+
+type WidgetSettings = {
+    columns: ColumnConfig[]
+    range: "all" | "week" | "today"
+    orderFilter: Filter
+    dateMode: "delivery" | "pick"
+}

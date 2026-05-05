@@ -39,3 +39,22 @@ export function addDays(date: string, days: number, skipWeekends?: boolean): str
     }
     return toDateOnlyString(d)
 }
+
+export function getDateRange(date: Date, mode: "week" | "month" | "year"): [Date, Date] {
+    const start = new Date(date)
+    const end = new Date(date)
+    if (mode === "week") {
+        const day = date.getDay()
+        const diffToMonday = (day + 6) % 7 // 0 (Monday) to 6 (Sunday)
+        start.setDate(date.getDate() - diffToMonday)
+        end.setDate(start.getDate() + 6)
+    } else if (mode === "month") {
+        start.setDate(1)
+        end.setMonth(end.getMonth() + 1)
+        end.setDate(0) // last day of previous month
+    } else if (mode === "year") {
+        start.setMonth(0, 1) // January 1st
+        end.setFullYear(end.getFullYear() + 1, 0, 0) // December 31st
+    }
+    return [start, end]
+}

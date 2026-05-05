@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useOrdersStore } from "../Stores/OrdersStore";
 import { filterOrder, getPickDate } from "./filter";
 import { useUIStore } from "../Stores/UIStore";
-import { toDateOnlyString } from "./Dates";
+import { getDateRange, toDateOnlyString } from "./Dates";
 
 
 
@@ -170,6 +170,25 @@ export function useVisibleOrders(
 
     const sorted =
         useSortedOrders(filtered, tableId)
+
+    return sorted
+}
+
+export function useCustomOrders(
+    tableId: string,
+    settings: WidgetSettings,
+    extraFilter: (order: GroupedOrder) => boolean
+) {
+    const dateRange: [Date | null, Date | null] | undefined =
+                        settings.range === "all" ?       undefined : 
+                        settings.range === "today" ?     [new Date(), new Date()] : 
+                        /* settings.range === "week" */  getDateRange(new Date(), 'week')
+
+    const groupedOrders = useOrdersStore(s => s.groupedOrders)
+    
+    const filtered = filterOrders(groupedOrders, { dateRange, extraFilter, dateMode: settings.dateMode })
+
+    const sorted = useSortedOrders(filtered, tableId)
 
     return sorted
 }

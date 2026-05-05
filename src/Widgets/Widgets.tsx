@@ -15,11 +15,6 @@ export const WIDGETS: Record<WIDGET_NAMES, React.FC<WidgetProps>> = {
     "not-picked": NotPicked
 }
 
-export type WidgetSettings = {
-    columns: ColumnConfig[]
-    range: "all" | "week" | "today"
-    orderFilter: Filter
-}
 
 const AllOrdersSettings: WidgetSettings = {
     columns: [
@@ -32,7 +27,8 @@ const AllOrdersSettings: WidgetSettings = {
       { key: 'deliverDate', label: 'Delivery Date', date: true }
     ],
     range: "all",
-    orderFilter: "All"
+    orderFilter: "All",
+    dateMode: "delivery"
 }
 
 const CouriersSettings: WidgetSettings = {
@@ -43,7 +39,8 @@ const CouriersSettings: WidgetSettings = {
     { key: 'deliverDate', label: 'Delivery Date', date: true , width: '115px'},
   ],
     range: "all",
-    orderFilter: "All"
+    orderFilter: "All",
+    dateMode: "delivery"
 }
 
 const HeldSettings: WidgetSettings = {
@@ -54,7 +51,8 @@ const HeldSettings: WidgetSettings = {
     { key: 'deliverDate', label: 'Delivery Date' },
   ],
     range: "all",
-    orderFilter: "All"
+    orderFilter: "All",
+    dateMode: "delivery"
 }
 
 const NotPickedSettings: WidgetSettings = {
@@ -64,7 +62,8 @@ const NotPickedSettings: WidgetSettings = {
         { key: 'deliverDate', label: 'Delivery Date', date: true , width: '115px'},
   ],
     range: "all",
-    orderFilter: "All"
+    orderFilter: "All",
+    dateMode: "pick"
 }
 
 const SalesSettings: WidgetSettings = {
@@ -74,7 +73,8 @@ const SalesSettings: WidgetSettings = {
     { key: 'deliverDate', label: 'Delivery Date', date: true },
   ],
     range: "all",
-    orderFilter: "All"
+    orderFilter: "All",
+    dateMode: "delivery"
 }
 
 export const WIDGET_DEFAULT_SETTINGS: Record<WIDGET_NAMES, WidgetSettings> = {

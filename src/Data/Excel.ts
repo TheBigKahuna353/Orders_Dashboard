@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useOrdersStore } from "../Stores/OrdersStore"
-import * as XLSX from 'xlsx-js-style'
 import { useCycleCountStore } from "../Stores/CycleCountStore"
 import { toDateOnlyString } from "./Dates"
 import { getPickDate } from "./filter";
@@ -24,26 +24,25 @@ const SUMMARY_RANGES = [
   "AC29:AG31",
 ]
 
-function addOuterBorder(ws: XLSX.WorkSheet, range: string) {
-  const r = XLSX.utils.decode_range(range)
-
+async function addOuterBorder(ws: any, range: string) {
+  const { utils } = await import('xlsx-js-style');
+  const r = utils.decode_range(range);
   for (let row = r.s.r; row <= r.e.r; row++) {
     for (let col = r.s.c; col <= r.e.c; col++) {
-      const cellRef = XLSX.utils.encode_cell({ r: row, c: col })
-      if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" }
-
-      ws[cellRef].s = ws[cellRef].s || {}
-      ws[cellRef].s.border = ws[cellRef].s.border || {}
-
-      if (row === r.s.r) ws[cellRef].s.border.top = { style: "thin" }
-      if (row === r.e.r) ws[cellRef].s.border.bottom = { style: "thin" }
-      if (col === r.s.c) ws[cellRef].s.border.left = { style: "thin" }
-      if (col === r.e.c) ws[cellRef].s.border.right = { style: "thin" }
+      const cellRef = utils.encode_cell({ r: row, c: col });
+      if (!ws[cellRef]) ws[cellRef] = { t: "s", v: "" };
+      ws[cellRef].s = ws[cellRef].s || {};
+      ws[cellRef].s.border = ws[cellRef].s.border || {};
+      if (row === r.s.r) ws[cellRef].s.border.top = { style: "thin" };
+      if (row === r.e.r) ws[cellRef].s.border.bottom = { style: "thin" };
+      if (col === r.s.c) ws[cellRef].s.border.left = { style: "thin" };
+      if (col === r.e.c) ws[cellRef].s.border.right = { style: "thin" };
     }
   }
 }
 
 async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[]> {
+  const { read, utils } = await import('xlsx-js-style');
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     const results: Map<string, CycleCountRecord> = new Map()
@@ -55,15 +54,10 @@ async function parseExcelFile(file: File, date: Date): Promise<CycleCountRecord[
     reader.onload = (e) => {
       try {
         const data = e.target?.result
-        const workbook = XLSX.read(data, { type: "array" })
-
+        const workbook = read(data, { type: "array" })
         const worksheet = workbook.Sheets['Count Summary']
-
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-          defval: "", // keeps empty cells
-        })
+        const jsonData = utils.sheet_to_json(worksheet, { defval: "" })
         console.log("Raw JSON Data from Excel:", jsonData)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         jsonData.forEach((row: any) => {
             const material = row['Material'] || ''
             if (!material) return; // skip empty material rows
@@ -130,17 +124,16 @@ export async function onExcelUpload(file: File, date: Date, format: 'clear' | 'o
 }
 
 export async function parseExcelToRows(file: File): Promise<string[][]> {
+  const { read, utils } = await import('xlsx-js-style');
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
     reader.onload = (e) => {
       try {
         const data = e.target?.result
-        const workbook = XLSX.read(data, { type: "array" })
+        const workbook = read(data, { type: "array" })
         const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-          range: 5 // skip first 5 rows which are headers
-        })
+        const jsonData = utils.sheet_to_json(worksheet, { range: 5 }) // skip first 5 rows which are headers
         resolve(jsonData as string[][])
       } catch (err) {
         reject(err)
@@ -149,7 +142,7 @@ export async function parseExcelToRows(file: File): Promise<string[][]> {
 
     reader.onerror = reject 
     reader.readAsArrayBuffer(file)
-  })
+  });
 }
 
 
@@ -166,7 +159,7 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
       console.error('Table not found:', tableId);
       return;
     }
-    
+    const { utils, read, writeFile } = await import('xlsx-js-style');
     const dataText = table.innerText;
     const rows = dataText.split('\n');
     const data = rows.map(row => row.split('\t'));
@@ -196,7 +189,7 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
   try {
     const response = await fetch('/Orders_Dashboard/Template.xlsx');
     const arrayBuffer = await response.arrayBuffer();
-    const template = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
+    const template = read(arrayBuffer, { type: 'array', cellStyles: true });
     const worksheet = template.Sheets[template.SheetNames[0]];
 
     // write dates from row 1
@@ -208,8 +201,8 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
         i += 2
         continue;
       }
-      const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: 1 });
-      const cellAddress2 = XLSX.utils.encode_cell({ c: col+i, r: 2 });
+      const cellAddress = utils.encode_cell({ c: col+i, r: 1 });
+      const cellAddress2 = utils.encode_cell({ c: col+i, r: 2 });
       worksheet[cellAddress] = { t: 's', v: data[0][col].split(',')[1].trim() };
       worksheet[cellAddress2] = { t: 's', v: data[0][col].split(',')[0].trim() };
 
@@ -219,14 +212,14 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
         
         if (row % 4 === 1) j++ // increment j every 4 rows, starting from the second row
 
-        const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: row+2+j });
+        const cellAddress = utils.encode_cell({ c: col+i, r: row+2+j });
         const value = data[row][col].replace(',', ''); // remove commas from numbers
         worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
       }
       if (bulkIsSplit) {
         // write bulk data in the last 3 rows
         for (let k = 0; k < 3; k++) {
-          const cellAddress = XLSX.utils.encode_cell({ c: col+i, r: 28+k });
+          const cellAddress = utils.encode_cell({ c: col+i, r: 28+k });
           const value = data[data.length - 3 + k][col].replace(',', '');
           worksheet[cellAddress] = { t: 'n', v: parseFloat(value) };
         }
@@ -243,7 +236,7 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
 
     //console.log(data)
     // You may want to trigger a download here
-    XLSX.writeFile(template, filename);
+    await writeFile(template, filename);
   } catch (err) {
     console.error('Error fetching or processing template.xlsx:', err);
   }
@@ -258,11 +251,12 @@ export async function exportTableToExcel(tableId: string, month: number, year: n
  * @param startDate The start date (inclusive) as a Date or string (YYYY-MM-DD)
  * @param endDate The end date (inclusive) as a Date or string (YYYY-MM-DD)
  */
-export function addOrderSheetsToWorkbook(
-  wb: XLSX.WorkBook,
+export async function addOrderSheetsToWorkbook(
+  wb: any,
   month: number,
   year: number
 ) {
+  const { utils } = await import('xlsx-js-style');
   // Get all orders from the store (now a hashmap)
   const ordersObj = useOrdersStore.getState().orders;
   const orders = Object.values(ordersObj);
@@ -290,7 +284,7 @@ export function addOrderSheetsToWorkbook(
     // Use all keys from the first order as columns
     const columns = orders.length > 0 ? Object.keys(orders[0]) as (keyof Order)[] : [];
     const sheetData = [columns, ...orders.map(order => columns.map(col => order[col]))];
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    XLSX.utils.book_append_sheet(wb, ws, `${day}`);
+    const ws = utils.aoa_to_sheet(sheetData);
+    utils.book_append_sheet(wb, ws, `${day}`);
   });
 }

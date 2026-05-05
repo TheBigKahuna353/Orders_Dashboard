@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { DASHBOARD_LAYOUTS } from "../Layout/Layouts"
-import { type WidgetSettings } from "../Widgets/Widgets"
 
 type SortDirection = "asc" | "desc"
 

@@ -65,6 +65,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
   const colsWidths = "20px " + (mode?.draggable ? "20px " : "") + mode?.columns.map(col => col.width || '1fr').join(' ');
 
   function getUrlForOrder(order: GroupedOrder) {
+    if (mergeSourceOrder) return "" // disable links when in merge mode to prevent navigation away from the page
     return `/group/${order.groupId.replace(/\//g, '-').replace(/\s/g, '-')}`
   }
 
@@ -119,7 +120,8 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
       const order = row.order;
       const isOpen = expandedGroups.has(order.groupId);
       // Dropdown menu removed
-      const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.orders[0].customer && mergeSourceOrder.groupId !== order.groupId;
+      const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.customer && mergeSourceOrder.groupId !== order.groupId;
+      if (isMergeTarget) console.log("Merge source order:", mergeSourceOrder.deliveryNo, "Current order:", order.orders[0].deliveryNo)
       // ---------------------------- Main row for draggable mode --------------------
       if (mode?.draggable) {
         return (
@@ -157,7 +159,12 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
       } else { // ---------------------------- Main row for non-draggable mode --------------------
         return (
           <div style={style} key={order.groupId}>
-            <div className={`table-row`}>
+            <div className={`table-row ${isMergeTarget ? 'merge-target' : ''}`} onClick={() => {
+                if (mergeSourceOrder) {
+                  joinOrders(mergeSourceOrder.deliveryNo, order.orders[0].groupId)
+                  setMergeSourceOrder(null)
+                }
+              }}>
               <div className="table-row-col toggle-col" onClick={() => toggleGroup(order.groupId)}>
                 {isOpen ? <MdExpandMore /> : <MdChevronRight />}
               </div>
@@ -202,6 +209,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
                     setMergeSourceOrder(null)
                   } else {
                     setMergeSourceOrder(o)
+                    console.log("Set merge source order:", o)
                   }
                 }}
               >

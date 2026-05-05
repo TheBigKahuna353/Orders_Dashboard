@@ -1,9 +1,7 @@
 import { useUIStore } from "../Stores/UIStore";
-
-
-
 import React from "react";
 import { WIDGET_DEFAULT_SETTINGS } from "../Widgets/Widgets";
+import './WidgetSettings.css';
 
 const RANGE_OPTIONS = [
     { value: "all", label: "All" },
@@ -68,51 +66,70 @@ export function WidgetSettingsPanel({ widget, onClose }: { widget: DashboardWidg
 
     return (
         <>
-            <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    width: '400px',
-                    height: '100vh',
-                    background: 'var(--bg-panel, #fff)',
-                    boxShadow: '-2px 0 16px rgba(0,0,0,0.15)',
-                    zIndex: 3000,
-                    transition: 'transform 0.2s',
-                    padding: 32,
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}
-            >
+            <div className="widget-settings-panel">
                 <button
-                    style={{ position: 'absolute', top: 16, right: 16, fontSize: 24, background: 'none', border: 'none', cursor: 'pointer' }}
+                    className="widget-settings-close-btn"
                     onClick={onClose}
                     aria-label="Close widget settings"
                 >
-                    ×
+                    X
                 </button>
-                <h2 style={{marginTop: 0}}>Widget Settings</h2>
-                <div style={{marginBottom: 24}}>
-                    <label style={{fontWeight: 500}}>Range:</label>
+                <h2 className="widget-settings-title">Widget Settings</h2>
+                {/* Date Mode Toggle */}
+                <div className="widget-settings-section">
+                    <label className="widget-settings-label">Date Mode:</label>
+                    <div className="widget-settings-date-toggle">
+                        <div className="widget-settings-segmented">
+                            <div
+                                className={
+                                    'widget-settings-segmented-highlight ' +
+                                    (widgetSettings.dateMode === 'pick' ? 'left' : 'right')
+                                }
+                            />
+                            <button
+                                type="button"
+                                className={
+                                    'widget-settings-segmented-btn' +
+                                    (widgetSettings.dateMode === 'pick' ? ' active' : '')
+                                }
+                                onClick={() => setWidgetSettings(widget.id, { ...widgetSettings, dateMode: 'pick' })}
+                            >
+                                Pick Date
+                            </button>
+                            <button
+                                type="button"
+                                className={
+                                    'widget-settings-segmented-btn' +
+                                    (widgetSettings.dateMode === 'delivery' ? ' active' : '')
+                                }
+                                onClick={() => setWidgetSettings(widget.id, { ...widgetSettings, dateMode: 'delivery' })}
+                            >
+                                Delivery Date
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div className="widget-settings-section">
+                    <label className="widget-settings-label">Range:</label>
                     <select value={widgetSettings.range} onChange={handleRangeChange} style={{marginLeft: 12, padding: 4}}>
                         {RANGE_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                     </select>
                 </div>
-                <div style={{marginBottom: 24}}>
-                    <label style={{fontWeight: 500}}>Order Filter:</label>
+                <div className="widget-settings-section">
+                    <label className="widget-settings-label">Order Filter:</label>
                     <select value={widgetSettings.orderFilter} onChange={handleFilterChange} style={{marginLeft: 12, padding: 4}}>
                         {FILTER_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                     </select>
                 </div>
-                <div style={{marginBottom: 24}}>
-                    <label style={{fontWeight: 500}}>Columns:</label>
-                    <div style={{marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6}}>
+                <div className="widget-settings-section">
+                    <label className="widget-settings-label">Columns:</label>
+                    <div className="widget-settings-columns-list">
                         {ALL_COLUMNS.map(col => (
-                            <label key={col.key} style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                            <label key={col.key} className="widget-settings-column-label">
                                 <input
                                     type="checkbox"
                                     checked={visibleColumns.some(vcol => vcol.key === col.key)}
@@ -125,15 +142,7 @@ export function WidgetSettingsPanel({ widget, onClose }: { widget: DashboardWidg
                 </div>
             </div>
             <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    background: 'rgba(0,0,0,0.18)',
-                    zIndex: 2999,
-                }}
+                className="widget-settings-backdrop"
                 onClick={onClose}
             />
         </>
