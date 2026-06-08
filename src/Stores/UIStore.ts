@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { DASHBOARD_LAYOUTS } from "../Layout/Layouts"
+import { WIDGET_DEFAULT_SETTINGS } from "../Widgets/WidgetDefaults"
 
 type SortDirection = "asc" | "desc"
 
@@ -39,6 +40,7 @@ type UIState = {
 
     widgetSettings: Record<string, WidgetSettings>
     setWidgetSettings: (widgetId: string, settings: WidgetSettings) => void
+    addWidgetSettings: (widgetId: string, settings: WidgetSettings) => void
 
     // CYCLECOUNT STATE
     cycleCountView: "latest" | "weekly" | "all"
@@ -46,6 +48,12 @@ type UIState = {
 
 }
 
+const settings: Record<string, WidgetSettings> = {
+    "1": WIDGET_DEFAULT_SETTINGS["orders"],
+    "2": WIDGET_DEFAULT_SETTINGS["courier"],
+    "3": WIDGET_DEFAULT_SETTINGS["not-picked"],
+    "4": WIDGET_DEFAULT_SETTINGS["held"],
+}
 
 
 function findPosition(widgets: DashboardWidget[], newWidget: DashboardWidget) {
@@ -146,9 +154,15 @@ persist(
                 colSpan: 1,
                 rowSpan: 1
             };
-            return { dashboardLayout: [...state.dashboardLayout, newWidget] };
+
+            const settings: WidgetSettings = WIDGET_DEFAULT_SETTINGS[type]
+            return { dashboardLayout: [...state.dashboardLayout, newWidget], widgetSettings: { ...state.widgetSettings, [newWidget.id]: settings } };
         }),
-        removeWidget: (widgetId) => set(state => ({ dashboardLayout: state.dashboardLayout.filter(w => w.id !== widgetId) })),
+        removeWidget: (widgetId) => set(state => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { [widgetId]: _, ...remainingSettings } = state.widgetSettings
+            return { dashboardLayout: state.dashboardLayout.filter(w => w.id !== widgetId), widgetSettings: remainingSettings }
+        }),
         resizeWidget: (widgetId, w, h) => set(state => ({
             dashboardLayout: state.dashboardLayout.map(wid => 
                 wid.id === widgetId ? { ...wid, colSpan: w || 1, rowSpan: h || 1 } : wid
@@ -165,11 +179,17 @@ persist(
         setCycleCountView: (view) => set({ cycleCountView: view }),
 
         // WIDGET SETTINGS
-        widgetSettings: {}, 
+        widgetSettings: settings, 
         setWidgetSettings: (widgetId, settings) => set(state => ({
             widgetSettings: {
                 ...state.widgetSettings,
                 [widgetId]: settings
+            }
+        })),
+        addWidgetSettings: (widgetId: string, settings: WidgetSettings) => set(state => ({
+            widgetSettings: {
+                ...state.widgetSettings,
+                [widgetId]: { ...state.widgetSettings[widgetId], ...settings }
             }
         }))
 

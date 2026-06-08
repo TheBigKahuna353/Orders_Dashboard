@@ -15,13 +15,14 @@ import { useUIStore } from '../Stores/UIStore';
 import { useOrdersStore } from '../Stores/OrdersStore';
 
 import { useNavigate } from 'react-router';
+import { displayDate } from '../Data/Dates';
 
 
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onImportClick?: (e: any, importOption: 'clear' | 'overwrite' | 'add') => void;
   onExportClick?: () => void;
-  setEditMode?: Dispatch<SetStateAction<boolean>>
+  edit?: { setEditMode: Dispatch<SetStateAction<boolean>>, editMode: boolean };
   showFilters?: {
     filter?: boolean, 
     date?: boolean, 
@@ -32,7 +33,7 @@ interface HeaderProps {
   };
 }
 
-const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMode, showFilters }) => {
+const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, edit, showFilters }) => {
 
   const theme = useThemeStore((s) => s.theme)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
@@ -130,7 +131,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
     const query = event.query.toLowerCase();
     const results = orders.filter(order =>
       order.searchableString.includes(query)
-    );
+    ).sort((a, b) => b.deliverDate.localeCompare(a.deliverDate)); // sort by deliver date, newest first
     setSuggestions(results.slice(0, 10)); // limit to 10 suggestions
   }
 
@@ -176,7 +177,7 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
                   </div>
 
                   <div className="meta">
-                    {order?.totalPallets} pallets · {order?.city}
+                    {order?.totalPallets} pallets · {order?.city} · {displayDate(order?.deliverDate)}
                   </div>
                 </div>
               )}
@@ -287,9 +288,9 @@ const Header: React.FC<HeaderProps> = ({ onImportClick, onExportClick, setEditMo
               </div>
             </div>
           )}
-        {setEditMode && (
-          <button onClick={() => setEditMode((prev: boolean) => !prev)}>
-            Edit Dashboard
+        {edit && (
+          <button onClick={() => edit.setEditMode((prev: boolean) => !prev)}>
+            {edit.editMode ? "Exit Edit Mode" : "Edit Dashboard"}
           </button>
         )}
         <Toast ref={toast} />

@@ -1,12 +1,14 @@
 import { useUIStore } from "../Stores/UIStore";
 import React from "react";
-import { WIDGET_DEFAULT_SETTINGS } from "../Widgets/Widgets";
+import { WIDGET_DEFAULT_SETTINGS } from "../Widgets/WidgetDefaults";
 import './WidgetSettings.css';
 
 const RANGE_OPTIONS = [
     { value: "all", label: "All" },
     { value: "week", label: "This Week" },
     { value: "today", label: "Today" },
+    { value: "month", label: "This Month" },
+    { value: "7 days", label: "Last 7 Days" },
 ];
 const FILTER_OPTIONS: { value: Filter; label: string }[] = [
     { value: "All", label: "All" },
@@ -33,7 +35,6 @@ export function WidgetSettingsPanel({ widget, onClose }: { widget: DashboardWidg
     const widgetSettings = useUIStore(s => widget?.id ? s.widgetSettings[widget.id] : undefined);
     const setWidgetSettings = useUIStore(s => s.setWidgetSettings);
 
-    console.log("Rendering settings for widget", widget?.id, widgetSettings);
     if (!widget?.id) {
         return null;
     }

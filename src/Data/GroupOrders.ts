@@ -182,7 +182,9 @@ export function useCustomOrders(
     const dateRange: [Date | null, Date | null] | undefined =
                         settings.range === "all" ?       undefined : 
                         settings.range === "today" ?     [new Date(), new Date()] : 
-                        /* settings.range === "week" */  getDateRange(new Date(), 'week')
+                        settings.range === "month" ?     getDateRange(new Date(), 'month') :
+                        settings.range === "7 days" ?    getDateRange(new Date(), '7 days') :
+                        settings.range === "week" ?      getDateRange(new Date(), 'week') : undefined
 
     const groupedOrders = useOrdersStore(s => s.groupedOrders)
     

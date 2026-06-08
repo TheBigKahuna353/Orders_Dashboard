@@ -2,6 +2,7 @@ import React from 'react'
 import './StatsCards.css'
 import { Droppable } from '../Dashboard/Droppable'
 import OrdersTable from '../OrdersTable/OrdersTable'
+import { useUIStore } from '../Stores/UIStore'
 
 interface HeldProps {
     id: string
@@ -10,13 +11,11 @@ interface HeldProps {
 const Held: React.FC<HeldProps> = ({ id }) => {
 
     const title = "Held Orders"
+    const settings = useUIStore(state => state.widgetSettings[id])
 
-    const cols: ColumnConfig[] = [
-        { key: 'customer', label: 'Customer' },
-        { key: 'ordersCount', label: '# Orders' },
-        { key: 'totalVolume', label: 'Volume' },
-        { key: 'deliverDate', label: 'Delivery Date' },
-    ]
+    if (!settings) {
+        return null
+    }
 
     return (
         <Droppable id={id}>
@@ -25,7 +24,7 @@ const Held: React.FC<HeldProps> = ({ id }) => {
                     <span className="card-icon">🚚</span>
                     <h3 className="card-title">{title}</h3>
                 </div>
-                <OrdersTable id={id} mode={{ draggable: true, columns: cols, filter: (order) => order.status === 'held' }} />
+                <OrdersTable id={id} settings={settings} mode={{ draggable: true, filter: (order) => order.status === 'held' }} />
             </div>
         </Droppable>
     )

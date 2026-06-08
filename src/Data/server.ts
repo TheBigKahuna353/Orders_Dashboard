@@ -2,11 +2,14 @@ import axios from 'axios';
 import { useOrdersStore } from '../Stores/OrdersStore';
 import { useInboundStore } from '../Stores/InboundStore';
 
-const DEBUG_SERVER = false;
+
+const DEBUG_SERVER = true;
 const API_URL = (import.meta.env.DEV && !DEBUG_SERVER) ? 'http://localhost:4941/api/v1/dashboard' : 'https://webserver-aekg.onrender.com/api/v1/dashboard';
 
 let pageLoadSync: Promise<void> | null = null;
 let pageLoadSyncCompleted = false;
+
+
 
 export const onPageLoad = async () => {
     if (pageLoadSyncCompleted) {
@@ -38,7 +41,6 @@ export const onPageLoad = async () => {
                 console.log('Local data is newer. Sending orders to server...', Orders.time, localTimeOrders);
                 await sendOrders(Object.values(useOrdersStore.getState().orders));
             }
-
             if (Pickups.time > localTimePickups) {
                 console.log('Newer pickup data available. Fetching pickups...', Pickups.time, localTimePickups);
                 await fetchPickups();
@@ -55,7 +57,7 @@ export const onPageLoad = async () => {
                 await sendInbound(useInboundStore.getState().deliveries);
             }
 
-
+            FixOrders();
             pageLoadSyncCompleted = true;
         } catch (err) {
             console.error('Error fetching metadata:', err);
@@ -198,3 +200,21 @@ export const fetchInbound = async () => {
         return false;
     }
 };
+
+const FixOrders = () => {
+    const ordersStore = useOrdersStore.getState();
+    const orders = Object.values(ordersStore.orders);
+    console.log("Checking for orders with wrong pickup type");
+    let updated = 0
+    orders.forEach(order => {
+        if (order.comments.toLowerCase().includes("courier") || order.comments.toLowerCase().includes("pha")) {
+            if (order.pickupType !== "courier") {
+                order.pickupType = "courier";
+                updated++;
+            }
+        }
+    });
+    console.log(`Pickup type fix completed. Updated ${updated} orders.`);
+    ordersStore.setOrders(orders, Date.now());
+    sendOrders(orders);
+}

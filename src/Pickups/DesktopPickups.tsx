@@ -56,7 +56,7 @@ export const DesktopPickups = ({ selectedDate, setSelectedDate }: Props) => {
         }
         return !pickupPlans.some(p => p.order.groupId === order.groupId) &&
                (order.searchableString.includes(lowerSearch));
-      });
+      }).sort((a, b) => b.deliverDate.localeCompare(a.deliverDate)); // sort by deliver date, newest first
     }, [search, orders, pickupPlans]);
 
     useEffect(() => {

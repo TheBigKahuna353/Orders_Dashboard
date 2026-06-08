@@ -1,4 +1,4 @@
-import { fromDateOnlyString } from "./Dates";
+import { fromDateOnlyString, toDateOnlyString } from "./Dates";
 
 export function subtractWorkDays(startDate: Date, daysToSubtract: number): Date {
   if (typeof startDate === 'string') {
@@ -74,4 +74,35 @@ export function displayLongText(text: string, maxLength: number): string {
     return text;
   }
   return text.slice(0, maxLength) + '...';
+}
+
+function slugifyForUrl(s: string): string {
+  return (s || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+}
+
+function safeDatePart(dateStr: string): string {
+  if (!dateStr) return ""
+  const parts = dateStr.split("/")
+  let d: Date
+  if (parts.length === 3 && parts[0].length <= 2 && parts.every(p => /^\d+$/.test(p))) {
+    const [day, month, year] = parts.map(Number)
+    d = new Date(year, month - 1, day)
+  } else {
+    d = new Date(dateStr)
+  }
+  if (!isNaN(d.getTime())) return toDateOnlyString(d)
+  return dateStr
+}
+
+export function makeGroupId(customer: string, deliverDate: string): string {
+  const customerPart = slugifyForUrl(customer || "unknown")
+  const datePart = slugifyForUrl(safeDatePart(deliverDate) || "")
+  return datePart ? `${customerPart}-${datePart}` : customerPart
 }

@@ -40,7 +40,7 @@ export function addDays(date: string, days: number, skipWeekends?: boolean): str
     return toDateOnlyString(d)
 }
 
-export function getDateRange(date: Date, mode: "week" | "month" | "year"): [Date, Date] {
+export function getDateRange(date: Date, mode: "week" | "month" | "year"| "7 days"): [Date, Date] {
     const start = new Date(date)
     const end = new Date(date)
     if (mode === "week") {
@@ -55,6 +55,9 @@ export function getDateRange(date: Date, mode: "week" | "month" | "year"): [Date
     } else if (mode === "year") {
         start.setMonth(0, 1) // January 1st
         end.setFullYear(end.getFullYear() + 1, 0, 0) // December 31st
+    } else if (mode === "7 days") {
+        start.setDate(date.getDate() - 6)
+        end.setDate(date.getDate())
     }
     return [start, end]
 }

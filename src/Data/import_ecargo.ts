@@ -2,7 +2,7 @@ import Papa from "papaparse"
 import { useOrdersStore } from "../Stores/OrdersStore"
 import { toDateOnlyString } from "./Dates"
 import { parseExcelToRows } from "./Excel"
-import { deriveStatus } from "./utils"
+import { deriveStatus, makeGroupId } from "./utils"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Promise<any[]> {
@@ -28,6 +28,11 @@ function parseCsvFile(file: File, format: "formatA" | "formatB" | "formatC"): Pr
 
 let indexDebug = 0;
 
+const isCourier = (comments: string) => {
+  if (comments.toLowerCase().includes("PHA")) return true
+  if (comments.toLowerCase().includes("courier")) return true
+  return false
+}
 
 function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
   return rows.map((row) => {
@@ -40,7 +45,7 @@ function mapFormatAToOrders(rows: Record<string, string>[]): Order[] {
       customer = "Foodstuffs " + city
     }
 
-    const groupId = `${customer.replace(/\s+/g, "-")}-${deliverDate.replace(/\//g, "-")}`
+    const groupId = makeGroupId(customer, deliverDate)
 
     return {
       deliveryNo: row["DeliveryNo"],
@@ -84,7 +89,7 @@ function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
         customer = "Foodstuffs " + city
       }
 
-      const groupId = `${customer.replace(/\s+/g, "-")}-${deliverDate.replace(/\//g, "-")}`
+      const groupId = makeGroupId(customer, deliverDate)
 
       return {
         deliveryNo: row["Consignment "],
@@ -99,7 +104,7 @@ function mapFormatBToOrders(rows: Record<string, string>[]): Order[] {
         deliverDate: parseDate(deliverDate),
         shipmentNo: row["Manifest"]?.trim() || "",
         DeliverStatus: row["Status"]?.trim() || "",
-        pickupType: "delivery",
+        pickupType: isCourier(comments) ? "courier" : "delivery",
         PO: row["PO Number"]?.trim() || "",
       }
     })

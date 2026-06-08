@@ -141,7 +141,6 @@
 /* animated container */
 .expand-wrapper {
 
-  overflow: hidden;
 
   width: 100%;
 
@@ -155,12 +154,16 @@
 
   display: grid;
   grid-template-columns: var(--details-grid-columns);
-  width: 60%;
-  padding-top: 16px;
+  width: 100%;
   font-size: 13px;
-
   opacity: 0.9;
+  padding-top: 12px;
+  height: 100%;
+}
 
+.expand-content button {
+  margin-top: -8px;
+  
 }
 
 

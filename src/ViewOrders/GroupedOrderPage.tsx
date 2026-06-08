@@ -5,7 +5,6 @@ import { useOrdersStore } from "../Stores/OrdersStore"
 import "./GroupedOrderPage.css"
 import { getPickDate } from "../Data/filter"
 import { displayDate } from "../Data/Dates"
-import { deriveStatus } from "../Data/utils"
 
 export default function GroupedOrderPage() {
 
@@ -28,13 +27,6 @@ export default function GroupedOrderPage() {
   const totalWeight = group.totalWeight
   const totalVolume = group.totalVolume
 
-  console.log("recalculated status for group", group.groupId, ":", {
-    totalOrders,
-    recalculatedStatuses: orders.map(o =>
-      deriveStatus(o.comments, o.shipmentNo ?? "", o.DeliverStatus ?? "")
-    )
-  })
-  console.log("individual orders:", orders)
 
   const picking = orders.filter(o => o.status === "picking").length
   const ready = orders.filter(o => o.status === "ready").length

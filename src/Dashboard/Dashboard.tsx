@@ -89,7 +89,7 @@ function Dashboard() {
         <WidgetSettingsPanel widget={openSettingsWidget} onClose={() => setOpenSettingsWidget(null)} />
         <div className="dashboard" style={heightCSS}>
           <main className="main-content">
-            <Header onImportClick={import_data} setEditMode={setEditMode} showFilters={showFilters}/>
+            <Header onImportClick={import_data} edit={{ setEditMode: setEditMode, editMode: editMode }} showFilters={showFilters}/>
             <div className="dash-content" ref={gridRef} style={gridStyle}>
               {dashboardLayout.map((widget: DashboardWidget) => {
                 const WidgetComponent = editMode ? PlaceHolder : WIDGETS[widget.type];

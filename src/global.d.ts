@@ -168,10 +168,10 @@ type InboundLine = {
 }
 
 type InboundDelivery = {
-    d: string
-    m: number
-    q: number
-    c: string
+    d: string // delivery number
+    m: number // materials
+    q: number // quantity
+    c: string // check-in date
 }
 
 type Asn = {
@@ -192,7 +192,7 @@ type ColumnConfig = {
 
 type WidgetSettings = {
     columns: ColumnConfig[]
-    range: "all" | "week" | "today"
+    range: "all" | "week" | "today" | "month" | "7 days"
     orderFilter: Filter
     dateMode: "delivery" | "pick"
 }

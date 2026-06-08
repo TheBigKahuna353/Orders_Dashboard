@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './OrdersTable.css'
 import { Draggable } from '../Dashboard/Draggable'
 import { Droppable } from '../Dashboard/Droppable'
-import { useVisibleOrders } from '../Data/GroupOrders'
+import { useCustomOrders, useVisibleOrders } from '../Data/GroupOrders'
 import { useUIStore } from '../Stores/UIStore'
 import { MdChevronRight, MdExpandMore } from 'react-icons/md'
 import { useOrdersStore } from '../Stores/OrdersStore'
@@ -12,12 +12,6 @@ import { Link } from 'react-router'
 import { List, type RowComponentProps } from 'react-window'
 
 
-type OrdersTableMode = {
-  draggable?: boolean
-  columns: ColumnConfig[]
-  filter?: (order: GroupedOrder) => boolean
-  offset?: number
-}
 
 function getValueByKey(order: GroupedOrder, key: string): React.ReactNode {
   const value = order[key as keyof GroupedOrder];
@@ -43,15 +37,52 @@ function displayValue(value: React.ReactNode, config: ColumnConfig): React.React
   return displayVal;
 }
 
-interface props {
+type TableFilter = (order: GroupedOrder) => boolean
+
+type WidgetTableProps = {
   id: string
-  mode?: OrdersTableMode
+  settings: WidgetSettings
+  mode: {
+    draggable: true
+    filter?: TableFilter
+    offset?: number
+  }
+}
+
+type PlainTableProps = {
+  id: string
+  mode: {
+    draggable?: false
+    columns: ColumnConfig[]
+    filter?: TableFilter
+    offset?: number
+  }
+}
+
+type OrdersTableProps = WidgetTableProps | PlainTableProps
+
+const EMPTY_WIDGET_SETTINGS: WidgetSettings = {
+  columns: [],
+  range: 'all',
+  orderFilter: 'All',
+  dateMode: 'delivery'
 }
 
 const ROW_HEIGHT = 40; // Adjusted to account for 1px border-bottom and 50px header height
 
-const OrdersTable: React.FC<props> = ({ mode, id }) => {
-  const orders = useVisibleOrders(id, mode?.filter);
+const OrdersTable: React.FC<OrdersTableProps> = (props) => {
+  const id = props.id
+  const isWidgetTable = 'settings' in props
+  const widgetSettings = isWidgetTable ? props.settings : EMPTY_WIDGET_SETTINGS
+  const tableFilter = props.mode.filter ?? (() => true)
+
+  const customOrders = useCustomOrders(
+      id,
+      widgetSettings,
+      tableFilter
+  )
+  const visibleOrders = useVisibleOrders(id, tableFilter)
+  const orders = isWidgetTable ? customOrders : visibleOrders
   const setSort = useUIStore(s => s.setTableSort)
   const { splitOrder, joinOrders } = useOrdersStore()
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
@@ -60,13 +91,14 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
   // navigate removed
   // Dropdown state removed
 
-  document.documentElement.setAttribute('widget', mode?.draggable ? 'true' : 'false');
+  document.documentElement.setAttribute('widget', isWidgetTable ? 'true' : 'false');
 
-  const colsWidths = "20px " + (mode?.draggable ? "20px " : "") + mode?.columns.map(col => col.width || '1fr').join(' ');
+  const columns = isWidgetTable ? widgetSettings.columns : props.mode.columns
+  const colsWidths = "20px " + (isWidgetTable ? "20px " : "") + columns.map(col => col.width || '1fr').join(' ');
 
   function getUrlForOrder(order: GroupedOrder) {
     if (mergeSourceOrder) return "" // disable links when in merge mode to prevent navigation away from the page
-    return `/group/${order.groupId.replace(/\//g, '-').replace(/\s/g, '-')}`
+    return `/group/${order.groupId}`
   }
 
   // Dropdown handler removed
@@ -123,11 +155,11 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
       const isMergeTarget = mergeSourceOrder && mergeSourceOrder.customer == order.customer && mergeSourceOrder.groupId !== order.groupId;
       if (isMergeTarget) console.log("Merge source order:", mergeSourceOrder.deliveryNo, "Current order:", order.orders[0].deliveryNo)
       // ---------------------------- Main row for draggable mode --------------------
-      if (mode?.draggable) {
+      if (isWidgetTable) {
         return (
           <div style={style} key={order.groupId}>
             <Draggable
-              id={order.groupId + ':' + mode.columns.length} // now 7 columns
+              id={order.groupId + ':' + columns.length} // now 7 columns
               isMergeTarget={isMergeTarget}
               className='table-row'
               onClick={() => {
@@ -142,7 +174,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
               >
                 {isOpen ? <MdExpandMore /> : <MdChevronRight />}
               </span>
-              {mode.columns.map(col => {
+              {columns.map(col => {
                 const value = getValueByKey(order, col.key);
                 if (col.link) {
                   return (
@@ -168,7 +200,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
               <div className="table-row-col toggle-col" onClick={() => toggleGroup(order.groupId)}>
                 {isOpen ? <MdExpandMore /> : <MdChevronRight />}
               </div>
-              {mode?.columns.map(col => {
+              {columns.map(col => {
                 const value = getValueByKey(order, col.key);
                 if (col.link) {
                   return (
@@ -227,8 +259,8 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
   const headers = (
     <div className="header-row" style={{width: '100%', position: 'sticky', top: 0, zIndex: 2}}>
       <span className='table-row-col'></span> {/* for expand/collapse icon */}
-      {mode?.draggable && <span className='table-row-col'></span>}{/* for drag handle */}
-      {mode?.columns.map(col => (
+      {isWidgetTable && <span className='table-row-col'></span>}{/* for drag handle */}
+      {columns.map(col => (
         <span key={col.key} onClick={() => setSort(id, col.key)} className='table-row-col'>{col.label}</span>
       ))}
     </div>
@@ -247,7 +279,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
             rowCount={flatRows.length}
             rowHeight={ROW_HEIGHT}
             rowProps={{}}
-            style={{height: `calc(100% - ${50 + (mode?.offset || 0)}px)`}}  // for some reason 50px is the magic number to make it fit perfectly without cutting off the last row or leaving extra space at the bottom
+            style={{height: `calc(100% - ${50 + (props.mode.offset || 0)}px)`}}  // for some reason 50px is the magic number to make it fit perfectly without cutting off the last row or leaving extra space at the bottom
           >
           </List>
         </div>
@@ -255,7 +287,7 @@ const OrdersTable: React.FC<props> = ({ mode, id }) => {
     </div>
   );
 
-  if (mode?.draggable) {
+  if (isWidgetTable) {
     return (
       <Droppable id={id} >
         <div className="orders-table-content" style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
