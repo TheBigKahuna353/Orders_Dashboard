@@ -1,199 +1,463 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import Header from "../Bars/Header";
-import { onExcelUpload } from "../Data/Excel";
-import { useUIStore } from "../Stores/UIStore";
-import './CycleCount.css';
-import useSortedData, { useWeeklyData } from "./Getdata";
-import CycleCountDateModal from "./CycleCountDateModal";
-import { displayDate } from "../Data/Dates";
+import { useEffect, useMemo, useState } from 'react'
+import './CycleCount.css'
+import { exportCycleCountWorkbook } from './cycleCountExcel'
+import { parseCycleCountMhtml, parseCycleCountText, parseMaterialPaste, parsePikFacesPaste } from './cycleCountParser'
+import type { CycleCountCountRow, CycleCountMaterialInput, CycleCountSourceRow } from './cycleCountTypes'
+
+type Day = 1 | 2 | 3
+
+const ASSUMPTION = 'Assumption: if a pasted material does not include a /1 /2 /3 suffix, it is assigned to days in pasted order, repeating across the selected day count.'
+
+function buildRows(materials: CycleCountMaterialInput[], sourceRows: CycleCountSourceRow[], pikFaces: Record<string, string>): CycleCountCountRow[] {
+  const byMaterial = new Map<string, CycleCountSourceRow[]>()
+  for (const row of sourceRows) {
+    const list = byMaterial.get(row.material) ?? []
+    list.push(row)
+    byMaterial.set(row.material, list)
+  }
+
+  const rows: CycleCountCountRow[] = []
+  for (const item of materials) {
+    const matches = byMaterial.get(item.material) ?? []
+    if (matches.length > 0) {
+      for (const match of matches) {
+        rows.push({ ...match, actualCount: '', variance: '', day: item.day, confirmed: false })
+      }
+      continue
+    }
+
+    rows.push({
+      material: item.material,
+      storageType: 'PIK',
+      storageBin: pikFaces[item.material] ?? '',
+      baseUnitOfMeasure: '',
+      sumOfTotalStock: 0,
+      countOfTotalStock2: 0,
+      actualCount: '',
+      variance: '',
+      day: item.day,
+      confirmed: false
+    })
+  }
+
+  return rows
+}
 
 export default function CycleCount() {
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
+  const [dayCount, setDayCount] = useState<1 | 2 | 3>(3)
+  const [materialText, setMaterialText] = useState('')
+  const [pikFacesText, setPikFacesText] = useState('')
+  const [lx03Text, setLx03Text] = useState('')
+  const [lx03File, setLx03File] = useState<File | null>(null)
+  const [parsedRows, setParsedRows] = useState<CycleCountSourceRow[]>([])
+  const [rows, setRows] = useState<CycleCountCountRow[]>([])
+  const [activeDay, setActiveDay] = useState<Day>(1)
+  const [error, setError] = useState('')
+  const [exporting, setExporting] = useState(false)
 
-    const tableId = 'CycleCount'
-    const { setTableSort, tableSort } = useUIStore()
-    const data = useSortedData(tableId)
-    const weeklyData = useWeeklyData()
-    const [pendingFile, setPendingFile] = useState<File | null>(null)
-    const [showDateModal, setShowDateModal] = useState(false)
-    const [importFormat, setImportFormat] = useState<'clear' | 'overwrite' | 'add'>('add')
-    const { cycleCountView, setCycleCountView } = useUIStore()
-    const displayData = cycleCountView === "weekly" ? weeklyData : data
+  const materials = useMemo(() => parseMaterialPaste(materialText, dayCount), [materialText, dayCount])
+  const pikFaces = useMemo(() => parsePikFacesPaste(pikFacesText), [pikFacesText])
+  const dayList = useMemo(() => Array.from({ length: dayCount }, (_, index) => (index + 1) as Day), [dayCount])
+  const dayRows = useMemo(() => dayList.map(day => rows.filter(row => row.day === day)), [rows, dayList])
+  const activeRows = dayRows[activeDay - 1] ?? []
+  const activeDayComplete = activeRows.length > 0 && activeRows.every(row => row.actualCount !== '')
+  const missingRows = activeRows.filter(row => row.actualCount === '')
+  const recountRows = rows.filter(row => row.day === activeDay && row.actualCount !== '' && !row.confirmed)
+  const recountCanConfirm = activeDayComplete && recountRows.length > 0
 
-    const import_data = async (file: File, format: 'clear' | 'overwrite' | 'add') => {
-        if ( !file ) return;
-        setPendingFile(file)
-        setImportFormat(format)
-        setShowDateModal(true)
+  const getDayStatus = (day: Day) => {
+    const rowsForDay = dayRows[day - 1] ?? []
+    if (rowsForDay.length === 0) return 'Not started'
+
+    const hasAnyCount = rowsForDay.some(row => row.actualCount !== '')
+    const allCounted = rowsForDay.every(row => row.actualCount !== '')
+    const hasVariance = rowsForDay.some(row => row.actualCount !== '' && Number(row.actualCount) !== row.sumOfTotalStock)
+    const allConfirmed = allCounted && rowsForDay.every(row => row.confirmed)
+
+    if (allConfirmed) return 'Confirmed'
+    if (allCounted && !hasVariance) return 'Counted'
+    if (hasVariance) return 'Recount'
+    if (hasAnyCount) return 'Counting'
+    return 'Not started'
+  }
+
+  useEffect(() => {
+    if (activeDay > dayCount) {
+      setActiveDay(dayCount)
+    }
+  }, [activeDay, dayCount])
+
+  const parseInputs = async () => {
+    if (!lx03File && !lx03Text.trim()) {
+      setError('Choose an LX03 file or paste the LX03 table first.')
+      return
     }
 
-    const onConfirmDate = async (date: Date) => {
-        setShowDateModal(false)
-        if (pendingFile) {
-            await onExcelUpload(pendingFile, date, importFormat)
-            setPendingFile(null)
-        }
+    try {
+      setError('')
+      const sourceRows = lx03Text.trim()
+        ? parseCycleCountText(lx03Text)
+        : await parseCycleCountMhtml(lx03File as File)
+      setParsedRows(sourceRows)
+      setRows(buildRows(materials, sourceRows, pikFaces))
+      setStep(2)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not parse the LX03 file.')
+    }
+  }
+
+  const updateActualCount = (material: string, storageBin: string, value: string) => {
+    const nextValue = value === '' ? '' : Number(value)
+    setRows(current => current.map(row => {
+      if (row.material !== material || row.storageBin !== storageBin) return row
+      const actualCount = Number.isFinite(nextValue) ? nextValue : ''
+      return {
+        ...row,
+        actualCount,
+        variance: actualCount === '' ? '' : row.sumOfTotalStock - actualCount,
+        confirmed: false
+      }
+    }))
+  }
+
+  const reviewRecount = (day: Day) => {
+    setActiveDay(day)
+    setRows(current => current.map(row => row.day === day ? { ...row, confirmed: false } : row))
+    setStep(4)
+  }
+
+  const confirmRecount = () => {
+    const blockingRows = activeRows.filter(row => row.actualCount === '')
+    const reasons: string[] = []
+
+    if (blockingRows.length > 0) {
+      reasons.push(`${blockingRows.length} row(s) still have blank actual count`)
     }
 
-  const totalSkus = data.length
-  const totalPalletVariance = data.reduce((sum, d) => sum + d.palletsVariance, 0)
-  const totalCaseVariance = data.reduce((sum, d) => sum + d.casesVariance, 0)
-  const varianceCount = data.filter(
-    d => d.palletsVariance !== 0 || d.casesVariance !== 0
-  ).length
+    if (recountRows.length === 0) {
+      reasons.push('no recount rows entered yet')
+    }
+
+    console.log('[CycleCount] confirm recount attempt', {
+      activeDay,
+      activeDayComplete,
+      recountRows: recountRows.length,
+      recountCanConfirm,
+      blockingRows: blockingRows.map(row => ({ material: row.material, storageBin: row.storageBin }))
+    })
+
+    if (reasons.length > 0) {
+      console.log('[CycleCount] confirm recount blocked', reasons)
+      return
+    }
+
+    setRows(current => current.map(row => {
+      if (row.day !== activeDay) return row
+      return { ...row, confirmed: true }
+    }))
+    if (activeDay < dayCount) {
+      setActiveDay((activeDay + 1) as Day)
+      setStep(3)
+      return
+    }
+
+    setStep(5)
+  }
+
+  const onExport = async () => {
+    setExporting(true)
+    try {
+      await exportCycleCountWorkbook(rows)
+      setStep(5)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not export the workbook.')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
-    <div className="cycle-count-page">
-        {showDateModal && (
-            <CycleCountDateModal
-                isOpen={showDateModal}
-                onClose={() => setShowDateModal(false)}
-                onConfirm={(date) => {
-                    console.log("Selected date:", date)
-                    onConfirmDate(date)
-                }}
-            />
+    <div className="cyclecount-page">
+      <div className="cyclecount-shell">
+        <header className="cyclecount-header">
+          <div>
+            <div className="cyclecount-kicker">Cycle Count</div>
+            <h1>In-browser cycle count workflow</h1>
+            <p>{ASSUMPTION}</p>
+          </div>
+          <div className="cyclecount-stepper">
+            {['Setup', 'Match', 'Count', 'Recount', 'Report'].map((label, index) => (
+              <button key={label} className={step === index + 1 ? 'active' : ''} onClick={() => setStep((index + 1) as 1 | 2 | 3 | 4 | 5)}>
+                {index + 1}. {label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {error && <div className="cyclecount-error">{error}</div>}
+
+        {step === 1 && (
+          <section className="cyclecount-panel cyclecount-setup">
+            <div className="cyclecount-grid">
+              <label>
+                <span>Day count</span>
+                <select value={dayCount} onChange={e => setDayCount(Number(e.target.value) as 1 | 2 | 3)}>
+                  <option value={1}>1 day</option>
+                  <option value={2}>2 days</option>
+                  <option value={3}>3 days</option>
+                </select>
+              </label>
+              <label>
+                <span>Materials</span>
+                <textarea value={materialText} onChange={e => setMaterialText(e.target.value)} placeholder="Paste materials one per line or comma-separated. Optional suffix: 1234567/1" />
+              </label>
+              <label>
+                <span>PIK Faces</span>
+                <textarea value={pikFacesText} onChange={e => setPikFacesText(e.target.value)} placeholder="Paste Material and Stor. Bin, one per line or tab-separated" />
+              </label>
+              <label>
+                <span>LX03 MHTML</span>
+                <input type="file" accept=".mhtml,.mht,.html,.htm" onChange={e => setLx03File(e.target.files?.[0] ?? null)} />
+              </label>
+              <label>
+                <span>Or paste LX03 table</span>
+                <textarea value={lx03Text} onChange={e => setLx03Text(e.target.value)} placeholder="Paste the LX03 table copied from a spreadsheet here. Tab-separated text works best." />
+              </label>
+            </div>
+            <div className="cyclecount-actions">
+              <button disabled={(!lx03File && !lx03Text.trim()) || materials.length === 0} onClick={parseInputs}>Parse and match</button>
+            </div>
+          </section>
         )}
-        <div className="cycle-count-content">
-            <Header onImportClick={import_data} showFilters={{date: true, filetype: '.xlsx'}}/>
-            <div className="cycle-dashboard">
 
-            <div className="view-toggle">
-                <button
-                    className={cycleCountView === "latest" ? "active" : ""}
-                    onClick={() => setCycleCountView("latest")}
-                >
-                    Latest
+        {step === 2 && (
+          <section className="cyclecount-panel">
+            <div className="cyclecount-tabs">
+              {dayList.map(day => (
+                <button key={day} className={activeDay === day ? 'active' : ''} onClick={() => setActiveDay(day as Day)}>
+                  <span>Day {day}</span>
+                  <span className="cyclecount-tab-status">{getDayStatus(day)}</span>
                 </button>
-
-                <button
-                    className={cycleCountView === "weekly" ? "active" : ""}
-                    onClick={() => setCycleCountView("weekly")}
-                >
-                    Weekly
-                </button>
-
-                <button
-                    className={cycleCountView === "all" ? "active" : ""}
-                    onClick={() => setCycleCountView("all")}
-                >
-                    All Counts
-                </button>
+              ))}
             </div>
-
-            {/* SUMMARY CARDS */}
-            <div className="summary-grid">
-                <div className="summary-card">
-                <div className="summary-label">Total SKUs</div>
-                <div className="summary-value">{totalSkus}</div>
-                </div>
-
-                <div className="summary-card">
-                <div className="summary-label">SKUs With Variance</div>
-                <div className="summary-value">{varianceCount}</div>
-                </div>
-
-                <div className="summary-card">
-                <div className="summary-label">Total Pallet Variance</div>
-                <div className="summary-value">{totalPalletVariance}</div>
-                </div>
-
-                <div className="summary-card">
-                <div className="summary-label">Total Case Variance</div>
-                <div className="summary-value">{totalCaseVariance}</div>
-                </div>
-            </div>
-
-            {/* TABLE */}
-            <div className="table-wrapper">
-                <table className="cycle-table">
+            <div className="cyclecount-table-wrap">
+              <table className="cyclecount-table">
                 <thead>
-                    <tr>
-                        {cycleCountView !== "latest"  && (
-                            <th
-                                onClick={() => setTableSort(tableId, "countDate")}
-                                className={
-                                tableSort[tableId]?.column === "countDate" ? "active-sort" : ""
-                                }
-                            >
-                                Date
-                            </th>
-                        )}
-                    {[
-                        cycleCountView !== "weekly" ? { key: "material", label: "Material" } : null,
-                        { key: "pallets", label: "Pallets" },
-                        { key: "cases", label: "Cases" },
-                        { key: "palletsVariance", label: "Pallet Variance" },
-                        { key: "casesVariance", label: "Case Variance" },
-                    ].map(col => (
-                        col &&
-                        <th
-                        key={col.key}
-                        onClick={() => setTableSort(tableId, col.key)}
-                        className={
-                            tableSort[tableId] && tableSort[tableId].column === col.key
-                            ? "active-sort"
-                            : ""
-                        }
-                        >
-                        {col.label}
-                        {tableSort[tableId] && tableSort[tableId].column === col.key && (
-                            <span className="sort-indicator">
-                            {tableSort[tableId].direction === "asc" ? " ▲" : " ▼"}
-                            </span>
-                        )}
-                        </th>
-                    ))}
-                    </tr>
+                  <tr>
+                    <th>Material</th>
+                    <th>Storage Type</th>
+                    <th>Storage Bin</th>
+                    <th>Base Unit of Measure</th>
+                    <th>Sum of Total Stock</th>
+                    <th>Count of Total Stock2</th>
+                    <th>Day</th>
+                  </tr>
                 </thead>
-
                 <tbody>
-                    {displayData.map(record => {
-                    const hasVariance =
-                        record.palletsVariance !== 0 ||
-                        record.casesVariance !== 0
-
-                    return (
-                        <tr
-                        key={record.countDate + (cycleCountView === "weekly" ? record.countDate : (record as any).material)}
-                        className={hasVariance ? "variance-row" : ""}
-                        >
-                        {cycleCountView !== "latest"  && (
-                            <td>
-                                {displayDate(record.countDate)}
-                            </td>
-                            )}
-                        {cycleCountView !== "weekly" && (
-                            <td className="material-cell">{(record as any).material}</td>
-                        )}
-                        <td>{record.pallets}</td>
-                        <td>{record.cases}</td>
-                        <td
-                            className={
-                                record.palletsVariance !== 0
-                                ? `variance-cell ${
-                                    record.palletsVariance > 0 ? "positive" : "negative"
-                                    }`
-                                : ""
-                            }
-                        >
-                            {record.palletsVariance}
-                        </td>
-                        <td className={
-                            record.casesVariance !== 0
-                            ? "variance-cell"
-                            : ""
-                        }>
-                            {record.casesVariance}
-                        </td>
-                        </tr>
-                    )
-                    })}
+                  {activeRows.map(row => (
+                    <tr key={`${row.material}-${row.storageBin}-${row.day}`}>
+                      <td>{row.material}</td>
+                      <td>{row.storageType}</td>
+                      <td>{row.storageBin}</td>
+                      <td>{row.baseUnitOfMeasure}</td>
+                      <td>{row.sumOfTotalStock}</td>
+                      <td>{row.countOfTotalStock2}</td>
+                      <td>{row.day}</td>
+                    </tr>
+                  ))}
                 </tbody>
-                </table>
+              </table>
             </div>
+            <div className="cyclecount-actions">
+              <button onClick={() => setStep(3)}>Start counting</button>
             </div>
-        </div>
+          </section>
+        )}
+
+        {step === 3 && (
+          <section className="cyclecount-panel">
+            <div className="cyclecount-tabs">
+              {dayList.map(day => (
+                <button key={day} className={activeDay === day ? 'active' : ''} onClick={() => setActiveDay(day as Day)}>
+                  <span>Day {day}</span>
+                  <span className="cyclecount-tab-status">{getDayStatus(day)}</span>
+                </button>
+              ))}
+            </div>
+            <div className="cyclecount-table-wrap">
+              <table className="cyclecount-table cyclecount-count-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Storage Bin</th>
+                    <th>Storage Type</th>
+                    <th>Base UOM</th>
+                    <th>Expected</th>
+                    <th>Actual Count</th>
+                    <th>Variance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeRows.map(row => (
+                    <tr key={`${row.material}-${row.storageBin}-${row.day}`}>
+                      <td>{row.material}</td>
+                      <td className="cyclecount-count-bin">{row.storageBin || 'No bin from PIK Faces'}</td>
+                      <td>{row.storageType}</td>
+                      <td>{row.baseUnitOfMeasure}</td>
+                      <td>{row.sumOfTotalStock}</td>
+                      <td>
+                        <input
+                          className="cyclecount-count-input"
+                          type="number"
+                          inputMode="numeric"
+                          value={row.actualCount}
+                          onChange={e => updateActualCount(row.material, row.storageBin, e.target.value)}
+                        />
+                      </td>
+                      <td>{row.variance === '' ? '—' : row.variance}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="cyclecount-print-sheet" aria-hidden="true">
+              <div className="cyclecount-print-title">Cycle Count - Day {activeDay}</div>
+              <table className="cyclecount-print-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Storage Bin</th>
+                    <th>Actual Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeRows.map(row => (
+                    <tr key={`print-${row.material}-${row.storageBin}-${row.day}`}>
+                      <td>{row.material}</td>
+                      <td>{row.storageBin}</td>
+                      <td>{row.actualCount === '' ? '' : row.actualCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="cyclecount-actions">
+              <button onClick={() => reviewRecount(activeDay)}>Review recount</button>
+              <button onClick={() => window.print()}>Print this day</button>
+            </div>
+          </section>
+        )}
+
+        {step === 4 && (
+          <section className="cyclecount-panel">
+            <div className="cyclecount-recount-header">
+              <h2>Flagged locations - Day {activeDay}</h2>
+              <button onClick={confirmRecount}>Confirm day recount</button>
+            </div>
+            {missingRows.length > 0 && (
+              <div className="cyclecount-recount-warning">
+                <div className="cyclecount-recount-warning-title">
+                  {missingRows.length} row{missingRows.length === 1 ? '' : 's'} still need an actual count before you can confirm.
+                </div>
+                <ul>
+                  {missingRows.map(row => (
+                    <li key={`missing-${row.material}-${row.storageBin}-${row.day}`}>
+                      {row.material} {row.storageBin ? `- ${row.storageBin}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="cyclecount-actions">
+              <button disabled={recountRows.length === 0} onClick={() => window.print()}>Print recounts</button>
+            </div>
+            <div className="cyclecount-print-sheet" aria-hidden="true">
+              <div className="cyclecount-print-title">Recount Sheet - Day {activeDay}</div>
+              <table className="cyclecount-print-table cyclecount-print-recount-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Storage Bin</th>
+                    <th>Expected</th>
+                    <th>Actual Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recountRows.map(row => (
+                    <tr key={`recount-print-${row.material}-${row.storageBin}-${row.day}`}>
+                      <td>{row.material}</td>
+                      <td>{row.storageBin}</td>
+                      <td>{row.sumOfTotalStock}</td>
+                      <td>{row.actualCount === '' ? '' : row.actualCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="cyclecount-flagged">
+              {recountRows.length === 0 ? <p>No counted locations yet for this day.</p> : recountRows.map(row => (
+                <div key={`${row.material}-${row.storageBin}-${row.day}`} className="cyclecount-flagged-row">
+                  <div>{row.material}</div>
+                  <div>{row.storageBin}</div>
+                  <div>Expected {row.sumOfTotalStock}</div>
+                  <div className="cyclecount-flagged-status">{row.variance === '' || row.variance === 0 ? 'Matched, waiting for confirm' : 'Variance, replace actual count'}</div>
+                  <label>
+                    <span>Replace actual count</span>
+                    <input type="number" inputMode="numeric" value={row.actualCount === '' ? '' : row.actualCount} onChange={e => updateActualCount(row.material, row.storageBin, e.target.value)} />
+                  </label>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {step === 5 && (
+          <section className="cyclecount-panel">
+            <h2>Final report preview</h2>
+            <div className="cyclecount-table-wrap">
+              <table className="cyclecount-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Storage Type</th>
+                    <th>Storage Bin</th>
+                    <th>Base Unit of Measure</th>
+                    <th>Sum of Total Stock</th>
+                    <th>Count of Total Stock2</th>
+                    <th>Actual Count</th>
+                    <th>Variance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map(row => (
+                    <tr key={`${row.material}-${row.storageBin}-${row.day}`}>
+                      <td>{row.material}</td>
+                      <td>{row.storageType}</td>
+                      <td>{row.storageBin}</td>
+                      <td>{row.baseUnitOfMeasure}</td>
+                      <td>{row.sumOfTotalStock}</td>
+                      <td>{row.countOfTotalStock2}</td>
+                      <td>{row.actualCount === '' ? '' : row.actualCount}</td>
+                      <td>{row.variance === '' ? '' : row.variance}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="cyclecount-actions">
+              <button disabled={exporting} onClick={onExport}>{exporting ? 'Exporting…' : 'Download XLSX'}</button>
+            </div>
+          </section>
+        )}
+
+        <section className="cyclecount-panel cyclecount-debug">
+          <div>Materials pasted: {materials.length}</div>
+          <div>Parsed LX03 rows: {parsedRows.length}</div>
+          <div>PIK Faces entries: {Object.keys(pikFaces).length}</div>
+          <div>Days: {dayCount}</div>
+        </section>
+      </div>
     </div>
   )
 }

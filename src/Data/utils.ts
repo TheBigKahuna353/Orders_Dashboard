@@ -35,6 +35,7 @@ function isPublicHoliday(month: number, day: number): boolean {
     { month: 4, day: 25 }, // ANZAC Day
     { month: 4, day: 3 }, // Easter Friday
     { month: 4, day: 6 }, // Easter Monday
+    { month: 6, day: 1 }, // King's Birthday
   ];
 
   return publicHolidays.some(holiday => holiday.month === month && holiday.day === day);
