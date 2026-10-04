@@ -7,6 +7,47 @@ import type { CycleCountCountRow, CycleCountMaterialInput, CycleCountSourceRow }
 type Day = 1 | 2 | 3
 
 const ASSUMPTION = 'Assumption: if a pasted material does not include a /1 /2 /3 suffix, it is assigned to days in pasted order, repeating across the selected day count.'
+const SESSION_STORAGE_KEY = 'orders-dashboard-cycle-count'
+
+type CycleCountSessionState = {
+  step: 1 | 2 | 3 | 4 | 5
+  dayCount: 1 | 2 | 3
+  materialText: string
+  pikFacesText: string
+  lx03Text: string
+  parsedRows: CycleCountSourceRow[]
+  rows: CycleCountCountRow[]
+  activeDay: Day
+}
+
+function getStoredSessionState(): Partial<CycleCountSessionState> {
+  try {
+    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    return stored ? JSON.parse(stored) as Partial<CycleCountSessionState> : {}
+  } catch {
+    return {}
+  }
+}
+
+function formatStorageBin(storageBin: string) {
+  return storageBin.trim() ? storageBin : 'No PIK'
+}
+
+function compareStorageBins(left: CycleCountCountRow, right: CycleCountCountRow) {
+  const leftEmpty = left.storageBin.trim() === ''
+  const rightEmpty = right.storageBin.trim() === ''
+
+  if (leftEmpty !== rightEmpty) {
+    return leftEmpty ? 1 : -1
+  }
+
+  const binComparison = left.storageBin.localeCompare(right.storageBin, undefined, { numeric: true, sensitivity: 'base' })
+  if (binComparison !== 0) {
+    return binComparison
+  }
+
+  return left.material.localeCompare(right.material, undefined, { numeric: true, sensitivity: 'base' })
+}
 
 function buildRows(materials: CycleCountMaterialInput[], sourceRows: CycleCountSourceRow[], pikFaces: Record<string, string>): CycleCountCountRow[] {
   const byMaterial = new Map<string, CycleCountSourceRow[]>()
@@ -21,7 +62,7 @@ function buildRows(materials: CycleCountMaterialInput[], sourceRows: CycleCountS
     const matches = byMaterial.get(item.material) ?? []
     if (matches.length > 0) {
       for (const match of matches) {
-        rows.push({ ...match, actualCount: '', variance: '', day: item.day, confirmed: false })
+        rows.push({ ...match, actualCount: '', variance: '', day: item.day, recountRequired: false, confirmed: false })
       }
       continue
     }
@@ -36,6 +77,7 @@ function buildRows(materials: CycleCountMaterialInput[], sourceRows: CycleCountS
       actualCount: '',
       variance: '',
       day: item.day,
+      recountRequired: false,
       confirmed: false
     })
   }
@@ -44,26 +86,27 @@ function buildRows(materials: CycleCountMaterialInput[], sourceRows: CycleCountS
 }
 
 export default function CycleCount() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
-  const [dayCount, setDayCount] = useState<1 | 2 | 3>(3)
-  const [materialText, setMaterialText] = useState('')
-  const [pikFacesText, setPikFacesText] = useState('')
-  const [lx03Text, setLx03Text] = useState('')
+  const [storedState] = useState(getStoredSessionState)
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(storedState.step ?? 1)
+  const [dayCount, setDayCount] = useState<1 | 2 | 3>(storedState.dayCount ?? 3)
+  const [materialText, setMaterialText] = useState(storedState.materialText ?? '')
+  const [pikFacesText, setPikFacesText] = useState(storedState.pikFacesText ?? '')
+  const [lx03Text, setLx03Text] = useState(storedState.lx03Text ?? '')
   const [lx03File, setLx03File] = useState<File | null>(null)
-  const [parsedRows, setParsedRows] = useState<CycleCountSourceRow[]>([])
-  const [rows, setRows] = useState<CycleCountCountRow[]>([])
-  const [activeDay, setActiveDay] = useState<Day>(1)
+  const [parsedRows, setParsedRows] = useState<CycleCountSourceRow[]>(storedState.parsedRows ?? [])
+  const [rows, setRows] = useState<CycleCountCountRow[]>(storedState.rows ?? [])
+  const [activeDay, setActiveDay] = useState<Day>(storedState.activeDay ?? 1)
   const [error, setError] = useState('')
   const [exporting, setExporting] = useState(false)
 
   const materials = useMemo(() => parseMaterialPaste(materialText, dayCount), [materialText, dayCount])
   const pikFaces = useMemo(() => parsePikFacesPaste(pikFacesText), [pikFacesText])
   const dayList = useMemo(() => Array.from({ length: dayCount }, (_, index) => (index + 1) as Day), [dayCount])
-  const dayRows = useMemo(() => dayList.map(day => rows.filter(row => row.day === day)), [rows, dayList])
+  const dayRows = useMemo(() => dayList.map(day => rows.filter(row => row.day === day).slice().sort(compareStorageBins)), [rows, dayList])
   const activeRows = dayRows[activeDay - 1] ?? []
   const activeDayComplete = activeRows.length > 0 && activeRows.every(row => row.actualCount !== '')
   const missingRows = activeRows.filter(row => row.actualCount === '')
-  const recountRows = rows.filter(row => row.day === activeDay && row.actualCount !== '' && !row.confirmed)
+  const recountRows = rows.filter(row => row.day === activeDay && row.recountRequired && !row.confirmed).slice().sort(compareStorageBins)
   const recountCanConfirm = activeDayComplete && recountRows.length > 0
 
   const getDayStatus = (day: Day) => {
@@ -88,7 +131,31 @@ export default function CycleCount() {
     }
   }, [activeDay, dayCount])
 
-  const parseInputs = async () => {
+  useEffect(() => {
+    const sessionState: CycleCountSessionState = {
+      step,
+      dayCount,
+      materialText,
+      pikFacesText,
+      lx03Text,
+      parsedRows,
+      rows,
+      activeDay
+    }
+
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionState))
+    } catch {
+      // Session storage may be unavailable or full; the workflow still works in memory.
+    }
+  }, [step, dayCount, materialText, pikFacesText, lx03Text, parsedRows, rows, activeDay])
+
+  const startMatching = () => {
+    setError('')
+    setStep(2)
+  }
+
+  const parseDayInputs = async () => {
     if (!lx03File && !lx03Text.trim()) {
       setError('Choose an LX03 file or paste the LX03 table first.')
       return
@@ -99,9 +166,12 @@ export default function CycleCount() {
       const sourceRows = lx03Text.trim()
         ? parseCycleCountText(lx03Text)
         : await parseCycleCountMhtml(lx03File as File)
-      setParsedRows(sourceRows)
-      setRows(buildRows(materials, sourceRows, pikFaces))
-      setStep(2)
+      const dayMaterials = materials.filter(item => item.day === activeDay)
+      const newDayRows = buildRows(dayMaterials, sourceRows, pikFaces)
+      setParsedRows(current => [...current.filter(row => !dayMaterials.some(item => item.material === row.material)), ...sourceRows])
+      setRows(current => [...current.filter(row => row.day !== activeDay), ...newDayRows])
+      setLx03File(null)
+      setLx03Text('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not parse the LX03 file.')
     }
@@ -123,7 +193,11 @@ export default function CycleCount() {
 
   const reviewRecount = (day: Day) => {
     setActiveDay(day)
-    setRows(current => current.map(row => row.day === day ? { ...row, confirmed: false } : row))
+    setRows(current => current.map(row => {
+      if (row.day !== day) return row
+      const hasVariance = row.actualCount !== '' && Number(row.actualCount) !== row.sumOfTotalStock
+      return { ...row, recountRequired: row.recountRequired || hasVariance, confirmed: false }
+    }))
     setStep(4)
   }
 
@@ -135,7 +209,7 @@ export default function CycleCount() {
       reasons.push(`${blockingRows.length} row(s) still have blank actual count`)
     }
 
-    if (recountRows.length === 0) {
+    if (recountRows.length === 0 && activeRows.some(row => row.recountRequired)) {
       reasons.push('no recount rows entered yet')
     }
 
@@ -158,7 +232,7 @@ export default function CycleCount() {
     }))
     if (activeDay < dayCount) {
       setActiveDay((activeDay + 1) as Day)
-      setStep(3)
+      setStep(2)
       return
     }
 
@@ -216,17 +290,9 @@ export default function CycleCount() {
                 <span>PIK Faces</span>
                 <textarea value={pikFacesText} onChange={e => setPikFacesText(e.target.value)} placeholder="Paste Material and Stor. Bin, one per line or tab-separated" />
               </label>
-              <label>
-                <span>LX03 MHTML</span>
-                <input type="file" accept=".mhtml,.mht,.html,.htm" onChange={e => setLx03File(e.target.files?.[0] ?? null)} />
-              </label>
-              <label>
-                <span>Or paste LX03 table</span>
-                <textarea value={lx03Text} onChange={e => setLx03Text(e.target.value)} placeholder="Paste the LX03 table copied from a spreadsheet here. Tab-separated text works best." />
-              </label>
             </div>
             <div className="cyclecount-actions">
-              <button disabled={(!lx03File && !lx03Text.trim()) || materials.length === 0} onClick={parseInputs}>Parse and match</button>
+              <button disabled={materials.length === 0} onClick={startMatching}>Continue to daily matching</button>
             </div>
           </section>
         )}
@@ -240,6 +306,17 @@ export default function CycleCount() {
                   <span className="cyclecount-tab-status">{getDayStatus(day)}</span>
                 </button>
               ))}
+            </div>
+            <div className="cyclecount-day-inputs">
+              <label>
+                <span>LX03 for Day {activeDay}</span>
+                <input type="file" accept=".mhtml,.mht,.html,.htm" onChange={e => setLx03File(e.target.files?.[0] ?? null)} />
+              </label>
+              <label>
+                <span>Or paste LX03 table</span>
+                <textarea value={lx03Text} onChange={e => setLx03Text(e.target.value)} placeholder="Paste the LX03 table copied from a spreadsheet here." />
+              </label>
+              <button disabled={!lx03File && !lx03Text.trim()} onClick={parseDayInputs}>Parse and match Day {activeDay}</button>
             </div>
             <div className="cyclecount-table-wrap">
               <table className="cyclecount-table">
@@ -259,7 +336,7 @@ export default function CycleCount() {
                     <tr key={`${row.material}-${row.storageBin}-${row.day}`}>
                       <td>{row.material}</td>
                       <td>{row.storageType}</td>
-                      <td>{row.storageBin}</td>
+                      <td>{formatStorageBin(row.storageBin)}</td>
                       <td>{row.baseUnitOfMeasure}</td>
                       <td>{row.sumOfTotalStock}</td>
                       <td>{row.countOfTotalStock2}</td>
@@ -270,7 +347,7 @@ export default function CycleCount() {
               </table>
             </div>
             <div className="cyclecount-actions">
-              <button onClick={() => setStep(3)}>Start counting</button>
+              <button disabled={activeRows.length === 0} onClick={() => setStep(3)}>Start counting</button>
             </div>
           </section>
         )}
@@ -302,7 +379,7 @@ export default function CycleCount() {
                   {activeRows.map(row => (
                     <tr key={`${row.material}-${row.storageBin}-${row.day}`}>
                       <td>{row.material}</td>
-                      <td className="cyclecount-count-bin">{row.storageBin || 'No bin from PIK Faces'}</td>
+                      <td className="cyclecount-count-bin">{formatStorageBin(row.storageBin)}</td>
                       <td>{row.storageType}</td>
                       <td>{row.baseUnitOfMeasure}</td>
                       <td>{row.sumOfTotalStock}</td>
@@ -335,7 +412,7 @@ export default function CycleCount() {
                   {activeRows.map(row => (
                     <tr key={`print-${row.material}-${row.storageBin}-${row.day}`}>
                       <td>{row.material}</td>
-                      <td>{row.storageBin}</td>
+                      <td>{formatStorageBin(row.storageBin)}</td>
                       <td>{row.actualCount === '' ? '' : row.actualCount}</td>
                     </tr>
                   ))}
@@ -387,7 +464,7 @@ export default function CycleCount() {
                   {recountRows.map(row => (
                     <tr key={`recount-print-${row.material}-${row.storageBin}-${row.day}`}>
                       <td>{row.material}</td>
-                      <td>{row.storageBin}</td>
+                      <td>{formatStorageBin(row.storageBin)}</td>
                       <td>{row.sumOfTotalStock}</td>
                       <td>{row.actualCount === '' ? '' : row.actualCount}</td>
                     </tr>
@@ -399,7 +476,7 @@ export default function CycleCount() {
               {recountRows.length === 0 ? <p>No counted locations yet for this day.</p> : recountRows.map(row => (
                 <div key={`${row.material}-${row.storageBin}-${row.day}`} className="cyclecount-flagged-row">
                   <div>{row.material}</div>
-                  <div>{row.storageBin}</div>
+                  <div>{formatStorageBin(row.storageBin)}</div>
                   <div>Expected {row.sumOfTotalStock}</div>
                   <div className="cyclecount-flagged-status">{row.variance === '' || row.variance === 0 ? 'Matched, waiting for confirm' : 'Variance, replace actual count'}</div>
                   <label>

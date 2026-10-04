@@ -183,6 +183,16 @@ export const DesktopPickups = ({ selectedDate, setSelectedDate }: Props) => {
                       >
                         {isExpanded ? 'Hide' : 'Show'} {time === '--' ? 'Unassigned' : time} ({plans.length} order{plans.length > 1 ? 's' : ''})
                       </button>
+                      <button
+                        onClick={() => {
+                          const orderNumbers = plans.flatMap(({ order }) =>
+                            order.orders.map(({ deliveryNo }) => deliveryNo)
+                          );
+                          void navigator.clipboard.writeText(orderNumbers.join('\n'));
+                        }}
+                      >
+                        Copy Order Numbers
+                      </button>
                       <div className="showOnPrint">{time}</div>
                     </td>
                     <td>

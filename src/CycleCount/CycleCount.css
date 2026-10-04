@@ -118,6 +118,35 @@
   min-height: 220px;
 }
 
+.cyclecount-day-inputs {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(280px, 1.3fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin: 14px 0;
+}
+
+.cyclecount-day-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cyclecount-day-inputs textarea,
+.cyclecount-day-inputs input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text-primary);
+  padding: 12px;
+}
+
+.cyclecount-day-inputs textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
 .cyclecount-table-wrap {
   overflow: auto;
 }
@@ -280,7 +309,9 @@
   .cyclecount-error,
   .cyclecount-header,
   .cyclecount-tabs,
+  .cyclecount-day-inputs,
   .cyclecount-recount-summary,
+  .cyclecount-table-wrap,
   .cyclecount-flagged {
     display: none !important;
   }

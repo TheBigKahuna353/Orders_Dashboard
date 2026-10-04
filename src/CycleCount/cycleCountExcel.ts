@@ -15,7 +15,7 @@ export async function exportCycleCountWorkbook(rows: CycleCountCountRow[], filen
   }
 
   rows.forEach((row, index) => {
-    const excelRow = index + 2
+    const worksheetRow = index + 1
     const values = [
       row.material,
       row.storageType,
@@ -23,19 +23,19 @@ export async function exportCycleCountWorkbook(rows: CycleCountCountRow[], filen
       row.baseUnitOfMeasure,
       row.sumOfTotalStock,
       row.countOfTotalStock2,
-      row.actualCount,
-      row.variance
+      row.actualCount
     ]
 
     values.forEach((value, columnIndex) => {
-      const address = utils.encode_cell({ r: excelRow - 1, c: columnIndex })
+      const address = utils.encode_cell({ r: worksheetRow, c: columnIndex })
+      const existingCell = worksheet[address] ?? {}
       worksheet[address] = {
+        ...existingCell,
         t: typeof value === 'number' ? 'n' : 's',
         v: value
       }
     })
   })
 
-  worksheet['!ref'] = `A1:H${Math.max(rows.length + 1, 1)}`
   await writeFile(workbook, filename)
 }

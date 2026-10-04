@@ -11,6 +11,7 @@ export type CycleCountCountRow = CycleCountSourceRow & {
   actualCount: number | ''
   variance: number | ''
   day: 1 | 2 | 3
+  recountRequired: boolean
   confirmed: boolean
 }
 
